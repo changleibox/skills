@@ -1,0 +1,158 @@
+{
+  "name": "ishop-gitlab-issue-mr",
+  "version": "1.1.0",
+  "description": "iShop GitLab (git.graspishop.com) 仓库 Issue、Merge Request 和分支全生命周期管理技能，支持完整的开发工作流",
+  "author": "Qoder",
+  "category": "git_workflow",
+  "tags": ["gitlab", "issue", "merge-request", "branch", "workflow", "code-review"],
+  "dependencies": ["git", "glab"],
+  "gitlab": {
+    "url": "https://git.graspishop.com/",
+    "token_config": {
+      "methods": [
+        {
+          "name": "git_config",
+          "check_command": "git config --global gitlab.token",
+          "set_command": "git config --global gitlab.token \"<token>\""
+        },
+        {
+          "name": "env_var",
+          "check_command": "echo $GITLAB_TOKEN",
+          "set_command": "export GITLAB_TOKEN=\"<token>\""
+        }
+      ],
+      "create_url": "https://git.graspishop.com/-/profile/personal_access_tokens",
+      "required_scopes": ["api"]
+    }
+  },
+  "project_detection": {
+    "method": "git_remote",
+    "check_commands": [
+      "git rev-parse --is-inside-work-tree",
+      "git rev-parse --show-toplevel",
+      "git remote get-url origin"
+    ],
+    "url_pattern": "git@git.graspishop.com:{group}/{project}.git",
+    "fallback": "当前目录不在 Git 仓库内，请 cd 到项目目录后再执行操作"
+  },
+  "parameters": {
+    "default_target_branch": {
+      "type": "string",
+      "required": false,
+      "default": "main",
+      "description": "MR 默认目标分支"
+    },
+    "auto_delete_branch": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "MR 合并后是否自动删除源分支"
+    }
+  },
+  "workflow": {
+    "full_flow": {
+      "name": "Issue → MR(Draft) → 分支 → 开发 → 合并",
+      "steps": [
+        {
+          "step": 1,
+          "name": "create_issue",
+          "description": "创建 Issue 记录需求/问题",
+          "commands": ["glab issue create"]
+        },
+        {
+          "step": 2,
+          "name": "create_draft_mr",
+          "description": "创建 Draft MR 并自动创建关联分支",
+          "commands": ["glab mr create --draft --create-source-branch"]
+        },
+        {
+          "step": 3,
+          "name": "checkout_branch",
+          "description": "本地拉取关联分支开始开发",
+          "commands": ["git fetch", "git checkout"]
+        },
+        {
+          "step": 4,
+          "name": "develop_and_push",
+          "description": "开发并推送代码",
+          "commands": ["git add", "git commit", "git push"]
+        },
+        {
+          "step": 5,
+          "name": "mark_ready",
+          "description": "Draft MR 转正式状态，请求审核",
+          "commands": ["glab mr ready", "通知审核人"]
+        },
+        {
+          "step": 6,
+          "name": "merge",
+          "description": "审核通过后合并 MR",
+          "commands": ["glab mr merge --delete-branch"]
+        },
+        {
+          "step": 7,
+          "name": "auto_close",
+          "description": "自动关闭关联 Issue/MR/删除分支",
+          "commands": []
+        }
+      ]
+    }
+  },
+  "issue_types": [
+    {
+      "type": "feature",
+      "label": "feature",
+      "description": "新功能开发"
+    },
+    {
+      "type": "bug",
+      "label": "bug",
+      "description": "Bug 修复"
+    },
+    {
+      "type": "improvement",
+      "label": "improvement",
+      "description": "优化改进"
+    }
+  ],
+  "branch_naming": {
+    "pattern": "{issue-id}-{描述}",
+    "examples": [
+      "421-iShop开单神器",
+      "974-BUG修改",
+      "9750-商品性质档案"
+    ],
+    "note": "无类型前缀（feature/fix等），直接使用 Issue ID + 描述"
+  },
+  "mr_naming": {
+    "draft_pattern": "Draft: Resolve \"{Issue名称}\"",
+    "ready_pattern": "Resolve \"{Issue名称}\"",
+    "examples": {
+      "draft": "Draft: Resolve \"开发iShop开单神器\"",
+      "ready": "Resolve \"开发iShop开单神器\""
+    },
+    "description_keywords": {
+      "closes": "Closes #",
+      "fixes": "Fixes #",
+      "relates": "Relates to #"
+    }
+  },
+  "trigger_keywords": {
+    "issue_create": ["创建issue", "提issue", "记录问题", "新建issue", "创建一个问题"],
+    "issue_query": ["查看issue", "我的issue", "待处理issue", "issue列表"],
+    "mr_create": ["创建mr", "提交mr", "合并请求", "发起pr", "代码审查", "提mr"],
+    "mr_query": ["查看mr", "我的mr", "待审核mr", "mr列表"],
+    "branch_create": ["创建分支", "新建分支", "开发分支"],
+    "full_flow": ["我要开发", "新功能", "修复bug", "开发一个"]
+  },
+  "constraints": {
+    "require_issue_for_mr": {
+      "enabled": false,
+      "description": "创建 MR 时是否必须关联 Issue"
+    },
+    "squash_on_merge": {
+      "enabled": false,
+      "description": "合并时是否默认 squash commits"
+    }
+  }
+}

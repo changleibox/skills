@@ -1,0 +1,22 @@
+{
+  "name": "git-studio",
+  "version": "1.0.0",
+  "description": "蒸馏 Android Studio Git 工具的全流程操作技能，100%覆盖 Clone/Init、提交、Changelist、Shelve、分支管理、合并/Rebase/Cherry-pick、冲突解决、远程操作、Stash、历史查看、标签、Reset/Revert、Patch、Submodule、Git Hooks、GPG 签名、SSH 配置等完整 Git 工作流",
+  "author": "changlei",
+  "category": "git_workflow",
+  "tags": ["git", "branch", "merge", "rebase", "cherry-pick", "stash", "conflict", "tag", "reset", "revert", "log", "blame", "diff", "clone", "init", "shelve", "changelist", "patch", "submodule", "hooks", "gpg", "ssh"],
+  "dependencies": ["git"],
+  "parameters": {
+    "operation": {
+      "type": "string",
+      "required": false,
+      "description": "指定操作类型：clone|init|commit|branch|merge|rebase|cherry-pick|stash|shelve|changelist|log|blame|diff|tag|reset|revert|push|pull|fetch|patch|submodule|hooks|gpg|ssh|config"
+    },
+    "verbose": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "是否显示详细输出"
+    }
+  }
+}
