@@ -1,6 +1,6 @@
 {
   "name": "ishop-yunxiao-bug-fix",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "云效（阿里云DevOps平台）Bug工作项全生命周期管理技能，涵盖工作项查询、详情获取、评论提交、状态流转等操作流程",
   "author": "Qoder",
   "category": "project_management",
@@ -17,7 +17,9 @@
     "查看我的bug",
     "搜索bug",
     "查找bug",
-    "筛选bug"
+    "筛选bug",
+    "批量处理bug",
+    "批量修复bug"
   ],
   "parameters": {
     "project_name": {
@@ -85,7 +87,20 @@
       },
       {
         "name": "process_loop",
-        "description": "循环处理Bug列表"
+        "description": "循环处理Bug列表，支持多选Bug和三种处理模式（批量操作/流水线/智能分组）"
+      },
+      {
+        "name": "batch_process",
+        "description": "多Bug批量处理模式，包括批量操作、流水线和智能分组三种模式",
+        "tools": [
+          "mcp_RAM_get_work_item",
+          "mcp_RAM_search_workitems",
+          "mcp_RAM_create_work_item_comment",
+          "mcp_RAM_create_workitem_attachment",
+          "mcp_RAM_update_work_item",
+          "mcp_RAM_get_work_item_workflow",
+          "mcp_RAM_search_organization_members"
+        ]
       },
       {
         "name": "get_detail",
@@ -143,6 +158,11 @@
     "deferred_comment": {
       "title": "延期处理说明",
       "sections": ["处理结果", "延期原因", "预计处理时间", "当前影响"],
+      "format": "plain_text"
+    },
+    "batch_fix_comment": {
+      "title": "批量修复说明",
+      "sections": ["问题原因", "修改描述", "影响范围", "自测结果", "修复版本"],
       "format": "plain_text"
     }
   },
