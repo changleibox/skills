@@ -6,8 +6,10 @@
 
 | 技能名称 | 描述 | 分类 |
 |---------|------|------|
+| [git-studio](./skills/git-studio/) | 蒸馏 Android Studio Git 工具的全流程操作技能，100% 覆盖完整 Git 工作流（提交、分支、合并、回退、暂存、标签等） | Git 工作流 |
 | [ishop-ancestry-i18n](./skills/ishop-ancestry-i18n/) | Ancestry 项目国际化处理工具，自动将中文字符串替换为 S.strings 调用并更新 ARB 文件 | 代码处理 |
 | [ishop-commit](./skills/ishop-commit/) | Git 提交助手，智能生成符合 Conventional Commits 规范的提交信息，并在提交前进行代码审查和验证 | Git 工作流 |
+| [ishop-gitlab-issue-mr](./skills/ishop-gitlab-issue-mr/) | iShop GitLab 开发工作流管理，覆盖 Issue 创建、MR 管理、分支操作及完整开发闭环流程 | Git 工作流 |
 | [ishop-service-bill](./skills/ishop-service-bill/) | 业务类单据生成工具，基于现有代码架构生成标准化的销售、进货、调拨等物流类单据组件 | 代码生成 |
 | [ishop-wbs-split](./skills/ishop-wbs-split/) | 智能 WBS 拆分工具，通过 AI 协同从网页内容提取表格数据并进行任务拆分 | 项目管理 |
 | [ishop-yunxiao-bug-fix](./skills/ishop-yunxiao-bug-fix/) | 云效 Bug 工作项全生命周期管理，涵盖工作项查询、详情获取、评论提交、状态流转等操作 | 项目管理 |
@@ -16,13 +18,25 @@
 
 ```
 ├── skills/
-│   ├── ishop-ancestry-i18n/         # 国际化处理技能
+│   ├── git-studio/                  # Git 全流程操作技能
 │   │   ├── SKILL.md                # 技能文档（必需）
+│   │   ├── SKILL-advanced.md       # 高级操作
+│   │   ├── SKILL-branch.md         # 分支管理
+│   │   ├── SKILL-history.md        # 历史与追溯
+│   │   ├── SKILL-merge.md          # 合并操作
 │   │   ├── config.json             # 配置文件
-│   │   ├── examples.md             # 使用示例
-│   │   └── scripts/                # 脚本目录
+│   │   └── examples.md             # 使用示例
+│   ├── ishop-ancestry-i18n/         # 国际化处理技能
+│   │   ├── SKILL.md
+│   │   ├── config.json
+│   │   ├── examples.md
+│   │   └── scripts/
 │   │       └── i18n_helper.py
 │   ├── ishop-commit/                # Git 提交助手技能
+│   │   ├── SKILL.md
+│   │   ├── config.json
+│   │   └── examples.md
+│   ├── ishop-gitlab-issue-mr/       # GitLab Issue/MR 工作流技能
 │   │   ├── SKILL.md
 │   │   ├── config.json
 │   │   └── examples.md
@@ -38,6 +52,8 @@
 │   │       └── wbs_split.py
 │   └── ishop-yunxiao-bug-fix/       # 云效 Bug 管理技能
 │       ├── SKILL.md
+│       ├── SKILL-handling.md       # Bug 处理操作
+│       ├── SKILL-multi-bug.md      # 批量 Bug 处理
 │       ├── config.json
 │       └── examples.md
 ├── .gitignore
@@ -159,5 +175,5 @@ npx skills remove changleibox/skills
 
 - **代码处理**：ishop-ancestry-i18n
 - **代码生成**：ishop-service-bill
-- **Git 工作流**：ishop-commit
+- **Git 工作流**：git-studio, ishop-commit, ishop-gitlab-issue-mr
 - **项目管理**：ishop-wbs-split, ishop-yunxiao-bug-fix
