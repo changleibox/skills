@@ -1,0 +1,84 @@
+{
+  "name": "ishop-commit",
+  "version": "2.0.0",
+  "description": "iShop 项目提交前质量门禁，强制执行代码格式化与静态分析验证，通过后生成 Conventional Commits 规范提交信息。Git 操作委托 git-studio 执行",
+  "author": "Qoder",
+  "category": "git_workflow",
+  "tags": ["git", "commit", "conventional-commits", "code-review", "validation"],
+  "dependencies": ["git", "dart", "flutter"],
+  "parameters": {
+    "skip_review": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "是否跳过代码审查步骤（快速模式）"
+    },
+    "skip_tests": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "是否跳过测试执行"
+    },
+    "language": {
+      "type": "string",
+      "required": false,
+      "default": "zh",
+      "description": "提交信息语言：zh（中文）或 en（英文）"
+    },
+    "show_diff": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "是否显示完整差异"
+    }
+  },
+  "workflow": {
+    "steps": [
+      {
+        "name": "analyze_changes",
+        "description": "分析暂存区变更"
+      },
+      {
+        "name": "code_review",
+        "description": "代码审查（可选）",
+        "optional": true
+      },
+      {
+        "name": "pre_commit_validation",
+        "description": "提交前验证（强制）",
+        "commands": ["dart format --set-exit-if-changed .", "dart analyze"]
+      },
+      {
+        "name": "generate_message",
+        "description": "生成提交信息"
+      },
+      {
+        "name": "delegate_git_studio",
+        "description": "委托 git-studio 执行提交、推送及冲突处理",
+        "delegate": "git-studio"
+      }
+    ]
+  },
+  "commit_types": [
+    {"type": "feat", "description": "新功能", "usage": "添加新特性、新页面、新组件"},
+    {"type": "fix", "description": "修复Bug", "usage": "修复已知问题、错误处理"},
+    {"type": "docs", "description": "文档变更", "usage": "修改README、注释、文档文件"},
+    {"type": "style", "description": "代码格式", "usage": "代码格式化、空格、分号等（不影响逻辑）"},
+    {"type": "refactor", "description": "代码重构", "usage": "重构代码但不改变功能"},
+    {"type": "perf", "description": "性能优化", "usage": "提升性能的修改"},
+    {"type": "test", "description": "测试相关", "usage": "添加或修改测试用例"},
+    {"type": "build", "description": "构建系统", "usage": "修改构建脚本、依赖配置"},
+    {"type": "ci", "description": "CI/CD配置", "usage": "修改CI配置文件"},
+    {"type": "chore", "description": "其他杂项", "usage": "不属于以上分类的修改"}
+  ],
+  "constraints": {
+    "validation_required": {
+      "enabled": true,
+      "description": "提交前必须通过 dart analyze 验证，零问题才能提交"
+    },
+    "git_operations_delegate": {
+      "delegate": "git-studio",
+      "description": "所有 Git 操作（提交、推送、rebase、冲突处理）委托 git-studio 技能执行"
+    }
+  }
+}
