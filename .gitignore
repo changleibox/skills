@@ -30,6 +30,9 @@ ENV/
 # IDE
 .idea/
 .vscode/
+.qoder/
+.agents/
+skill-lock.json
 *.swp
 *.swo
 *~

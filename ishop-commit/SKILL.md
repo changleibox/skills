@@ -1,5 +1,5 @@
 ---
-name: commit
+name: ishop-commit
 description: Generate Conventional Commits-compliant commit messages by analyzing git diffs, perform code quality review, and validate code before committing. Use when the user requests to commit code, generate commit messages, or prepare staged changes for submission.
 ---
 

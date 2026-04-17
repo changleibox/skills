@@ -1,5 +1,5 @@
 {
-  "name": "service-bill",
+  "name": "ishop-service-bill",
   "version": "1.0.0",
   "description": "业务类单据生成工具，基于现有代码架构生成标准化的销售、进货、调拨等物流类单据组件",
   "author": "Qoder",

@@ -1,5 +1,5 @@
 ---
-name: wbs-split
+name: ishop-wbs-split
 description: 智能网页需求 WBS 拆分工具 - 通过 Qoder AI 协同读取网页内容，支持蓝湖 MCP 深度集成，零额外依赖，强制任务粒度控制，保持原始文档命名
 ---
 

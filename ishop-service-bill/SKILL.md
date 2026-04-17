@@ -1,5 +1,5 @@
 ---
-name: service-bill
+name: ishop-service-bill
 description: Generate service-type billing components (sales, purchase, transfer bills) following the existing codebase architecture. Create standardized models, presenters, pages, and cells for logistics business documents. Use when creating sales bills, purchase bills, transfer bills, or any service-related billing functionality.
 ---
 

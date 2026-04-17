@@ -1,5 +1,5 @@
 ---
-name: ancestry-i18n
+name: ishop-ancestry-i18n
 description: 自动化处理ancestry项目国际化任务，将中文字符串替换为S.strings调用并更新ARB文件。用于packages/ancestry/lib/src/pages目录下的文件国际化处理。
 ---
 

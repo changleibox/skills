@@ -1,5 +1,5 @@
 {
-  "name": "commit",
+  "name": "ishop-commit",
   "version": "1.0.0",
   "description": "Git 提交助手，智能生成符合 Conventional Commits 规范的提交信息，并在提交前进行代码审查和验证",
   "author": "Qoder",
