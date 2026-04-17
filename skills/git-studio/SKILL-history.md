@@ -262,6 +262,36 @@ git show <commit-hash>
 git blame <commit-hash>^ -L <line>,<line> <file>
 ```
 
+### Annotate Previous Revision — 递归追溯上一版本
+
+对应 AS 的 **Blame 视图中点击注解行 → Show Diff / Annotate Previous Revision**：
+
+**🔄 询问用户（对应 AS 的 Annotate Previous Revision 操作）：**
+> Blame 追溯：行 `<line>` 最后由提交 `<commit-hash>` 修改。
+> 进一步操作：
+> 1. **Annotate Previous Revision** — 查看此提交之前的 Blame（递归追溯）
+> 2. **Show Diff** — 查看此提交的完整变更
+> 3. **Copy Revision Number** — 复制提交哈希
+> 4. **Annotate Revision** — 查看此提交时的完整 Blame
+> 5. **返回当前版本 Blame**
+> 6. **取消**
+
+```bash
+# Annotate Previous Revision — 查看此行在上一版本的 blame
+git blame <commit-hash>^ -- <file>
+
+# 指定行范围的递归追溯
+git blame <commit-hash>^ -L <line>,<line> <file>
+
+# Show Diff — 查看该提交的变更
+git show <commit-hash> -- <file>
+
+# Annotate Revision — 查看某次提交时的完整 blame
+git blame <commit-hash> -- <file>
+```
+
+> 💡 **Agent 递归追溯**：当用户连续选择「Annotate Previous Revision」时，agent 自动将 `<commit-hash>` 替换为上一层提交的哈希，实现 AS 中点击注解行不断向前追溯的体验。
+
 ---
 
 ## Diff — 差异比较

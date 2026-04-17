@@ -483,6 +483,21 @@ git push --force              # 危险版，无条件覆盖
 
 ### Remote 管理
 
+对应 AS 的 **Git → Manage Remotes** 对话框：
+
+**🔄 询问用户（对应 AS 的 Manage Remotes 对话框）：**
+> 📡 远程仓库管理：
+> | # | 名称 | URL |
+> |---|------|-----|
+> | — | [agent 读取 `git remote -v` 填充] | |
+>
+> 可执行的操作：
+> 1. **添加远程仓库** — 新增一个远程源
+> 2. **修改远程 URL** — 更改已有远程的地址
+> 3. **重命名远程** — 修改远程名称
+> 4. **删除远程** — 移除一个远程源
+> 5. **取消**
+
 ```bash
 # 查看远程仓库
 git remote -v
@@ -491,7 +506,10 @@ git remote -v
 git remote add <name> <url>
 
 # 修改远程 URL
-git remote set-url origin <new-url>
+git remote set-url <name> <new-url>
+
+# 重命名远程
+git remote rename <old-name> <new-name>
 
 # 删除远程
 git remote remove <name>
@@ -712,6 +730,41 @@ git log -L <start>,<end>:<file>
 # 查看指定函数的变更历史（Git 自动识别函数边界）
 git log -L :<function-name>:<file>
 ```
+
+## Mark as Unchanged — 忽略本地修改（Assume Unchanged / Skip Worktree）
+
+对应 AS 的 **Git → Mark as Unchanged**（右键文件）：
+
+**🔄 询问用户（对应 AS 的 Mark as Unchanged 操作）：**
+> 标记文件为"未修改"（Git 将忽略本地变更，常用于本地配置文件）：
+> - **目标文件**：`<file>`
+> 1. **Assume Unchanged** — `git update-index --assume-unchanged`（轻量级，本地开发用）
+> 2. **Skip Worktree** — `git update-index --skip-worktree`（更强，适合团队共享的配置文件）
+> 3. **取消标记（Undo）** — 恢复 Git 对此文件变更的跟踪
+> 4. **查看已标记文件列表** — 列出所有被标记的文件
+> 5. **取消**
+
+```bash
+# Assume Unchanged — 告诉 Git 忽略此文件的本地修改
+git update-index --assume-unchanged <file>
+
+# Skip Worktree — 更强的忽略标记（pull/merge 时也不覆盖）
+git update-index --skip-worktree <file>
+
+# 撤销 Assume Unchanged
+git update-index --no-assume-unchanged <file>
+
+# 撤销 Skip Worktree
+git update-index --no-skip-worktree <file>
+
+# 查看所有 assume-unchanged 标记的文件
+git ls-files -v | grep '^h'
+
+# 查看所有 skip-worktree 标记的文件
+git ls-files -v | grep '^S'
+```
+
+---
 
 ### Add to .gitignore
 

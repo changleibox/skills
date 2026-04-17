@@ -81,14 +81,73 @@ git remote get-url origin
 
 ### Agent 执行流程
 
-**步骤1：识别意图**
+**步骤1：识别意图并确定项目**
+
 ```
 ✅ 识别为：新功能开发
-📝 建议创建 Issue 记录此需求
 ```
 
-**步骤2：创建 Issue**
+**检测当前项目：**
+```bash
+git remote get-url origin
+# 输出：git@git.graspishop.com:igroup/ishop.git
+```
 
+**项目确认（使用 ask_user_question）：**
+
+```json
+{
+  "question": "✅ 检测到项目：igroup/ishop，是否在此项目下操作？",
+  "options": [
+    {"label": "✅ 是，继续操作", "description": "使用当前项目"},
+    {"label": "🔄 切换到其他项目", "description": "列出所有有权限的项目"}
+  ]
+}
+```
+
+**步骤2：创建 Issue（交互选择）**
+
+**2.1 选择 Issue 类型：**
+```json
+{
+  "question": "📋 请选择 Issue 类型：",
+  "options": [
+    {"label": "🚀 feature", "description": "新功能开发"},
+    {"label": "🐛 bug", "description": "Bug 修复"},
+    {"label": "✨ improvement", "description": "优化改进"}
+  ]
+}
+```
+
+**2.2 确认 Issue 标题：**
+```json
+{
+  "question": "📋 Issue 标题：",
+  "options": [
+    {"label": "✅ 用户登录功能", "description": "使用建议标题"},
+    {"label": "✏️ 修改标题", "description": "手动输入新标题"}
+  ]
+}
+```
+
+**2.3 选择指派人：**
+```bash
+# 获取项目成员
+glab api projects/igroup%2Fishop/members --jq '.[] | "\(.name) (@\(.username))"'
+```
+
+```json
+{
+  "question": "📋 请选择指派人：",
+  "options": [
+    {"label": "张三 (@zhangsan)", "description": ""},
+    {"label": "李四 (@lisi)", "description": ""},
+    {"label": "👤 不指派", "description": "稍后指定"}
+  ]
+}
+```
+
+**2.4 创建 Issue：**
 ```bash
 glab issue create \
   --title "用户登录功能" \
@@ -103,17 +162,47 @@ glab issue create \
 
 **输出：**
 ```
-✅ Issue 创建成功
-   ID: #421
-   URL: https://git.graspishop.com/team/project/-/issues/421
-
-是否创建 Draft MR 并开始开发？
+✅ Issue #421 已创建
+   URL: https://git.graspishop.com/igroup/ishop/-/issues/421
 ```
 
-**步骤3：创建 Draft MR + 关联分支**
+**步骤3：创建 Draft MR + 关联分支（交互选择）**
 
+**3.1 选择目标分支：**
+```json
+{
+  "question": "📋 请选择目标分支：",
+  "options": [
+    {"label": "main", "description": "主分支"},
+    {"label": "develop", "description": "开发分支"}
+  ]
+}
+```
+
+**3.2 确认分支名称：**
+```json
+{
+  "question": "📋 分支名称：",
+  "options": [
+    {"label": "✅ 421-用户登录功能", "description": "使用建议名称"},
+    {"label": "✏️ 修改分支名", "description": "手动输入新名称"}
+  ]
+}
+```
+
+**3.3 确认创建 Draft MR：**
+```json
+{
+  "question": "📋 确认创建 Draft MR？",
+  "options": [
+    {"label": "✅ 创建 Draft MR", "description": "创建并关联分支"},
+    {"label": "⏸️ 暂不创建 MR", "description": "仅创建 Issue"}
+  ]
+}
+```
+
+**创建 MR：**
 ```bash
-# 用户确认后
 glab mr create \
   --title "Draft: Resolve \"用户登录功能\"" \
   --description "## 变更概述
@@ -129,10 +218,9 @@ Closes #421" \
 
 **输出：**
 ```
-✅ Draft MR 创建成功
-   MR: !45
+✅ Draft MR !45 已创建
    分支: 421-用户登录功能
-   URL: https://git.graspishop.com/team/project/-/merge_requests/45
+   URL: https://git.graspishop.com/igroup/ishop/-/merge_requests/45
 
 现在可以拉取分支开始开发了。
 ```
