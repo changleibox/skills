@@ -100,14 +100,94 @@ trigger:                        # 可选，触发关键词
 
 ## 安装
 
-使用 [Skills CLI](https://agentskills.io) 安装此技能仓库：
+使用 [Skills CLI](https://agentskills.io) 安装此技能仓库。
+
+### 方式一：安装到公共目录（推荐）
+
+公共目录安装后，所有项目都可以使用这些技能，适合个人开发者。
 
 ```bash
-# 安装所有技能
+# 安装到公共目录（默认 ~/.skills/）
 npx skills add https://gitee.com/changleibox/skills.git -y
+
+# 或显式指定公共目录
+npx skills add https://gitee.com/changleibox/skills.git -y --global
 ```
 
-安装后，技能将自动配置到 `.agents/skills/` 目录，支持 45+ AI Agent（包括 Qoder、Cursor、Claude Code 等）。
+**安装位置**：
+- macOS/Linux: `~/.skills/`
+- Windows: `%USERPROFILE%\.skills\`
+
+**优点**：
+- ✅ 所有项目共享同一份技能
+- ✅ 一次安装，处处可用
+- ✅ 便于统一管理和更新
+
+### 方式二：安装到项目目录
+
+项目目录安装后，技能仅在当前项目内可用，适合团队协作。
+
+```bash
+# 在项目根目录下执行
+cd /path/to/your-project
+npx skills add https://gitee.com/changleibox/skills.git -y --local
+```
+
+**安装位置**：
+- 项目目录下的 `.agents/skills/`
+
+**优点**：
+- ✅ 团队成员自动获得相同技能
+- ✅ 可纳入 Git 版本控制
+- ✅ 项目间技能版本隔离
+
+### 查看已安装的技能
+
+```bash
+# 查看所有已安装技能
+npx skills list
+
+# 查看特定仓库的技能
+npx skills list --repo https://gitee.com/changleibox/skills.git
+```
+
+## 更新
+
+### 更新技能仓库
+
+```bash
+# 更新公共目录的技能
+npx skills update https://gitee.com/changleibox/skills.git
+
+# 更新项目目录的技能
+cd /path/to/your-project
+npx skills update https://gitee.com/changleibox/skills.git --local
+```
+
+### 更新所有技能
+
+```bash
+# 更新所有已安装的技能仓库
+npx skills update --all
+```
+
+## 卸载
+
+```bash
+# 卸载特定仓库
+npx skills remove https://gitee.com/changleibox/skills.git
+
+# 卸载所有技能
+npx skills remove --all
+```
+
+## 兼容性
+
+安装后，技能将自动配置到 `.agents/skills/` 目录，支持 45+ AI Agent，包括：
+
+- **编辑器集成**：Qoder、Cursor、Claude Code、Windsurf、Zed
+- **CLI 工具**：Claude CLI、Aider
+- **IDE 插件**：VS Code、JetBrains
 
 ## 如何使用
 
