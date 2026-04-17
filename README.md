@@ -17,23 +17,34 @@
 ```
 skills/
 ├── README.md                    # 本文件
+├── LICENSE                      # MIT 开源许可证
+├── .well-known/
+│   └── skills/
+│       └── index.json           # Skills CLI 索引文件
 ├── ishop-ancestry-i18n/         # 国际化处理技能
 │   ├── SKILL.md                # 技能文档（必需）
-│   ├── config.json             # 配置文件（可选）
-│   ├── examples.md             # 使用示例（可选）
-│   └── scripts/                # 脚本目录（可选）
+│   ├── config.json             # 配置文件
+│   ├── examples.md             # 使用示例
+│   └── scripts/                # 脚本目录
 │       └── i18n_helper.py
 ├── ishop-commit/                # Git 提交助手技能
-│   └── SKILL.md
+│   ├── SKILL.md
+│   ├── config.json
+│   └── examples.md
 ├── ishop-service-bill/          # 业务单据生成技能
-│   └── SKILL.md
+│   ├── SKILL.md
+│   ├── config.json
+│   └── examples.md
 ├── ishop-wbs-split/             # WBS 拆分技能
 │   ├── SKILL.md
 │   ├── config.json
+│   ├── examples.md
 │   └── scripts/
 │       └── wbs_split.py
 └── ishop-yunxiao-bug-fix/       # 云效 Bug 管理技能
-    └── SKILL.md
+    ├── SKILL.md
+    ├── config.json
+    └── examples.md
 ```
 
 ## 技能文件说明
@@ -86,6 +97,17 @@ trigger:                        # 可选，触发关键词
 ### scripts/（可选）
 
 脚本目录用于存放技能需要用到的辅助脚本。
+
+## 安装
+
+使用 [Skills CLI](https://agentskills.io) 安装此技能仓库：
+
+```bash
+# 安装所有技能
+npx skills add https://gitee.com/changleibox/skills.git -y
+```
+
+安装后，技能将自动配置到 `.agents/skills/` 目录，支持 45+ AI Agent（包括 Qoder、Cursor、Claude Code 等）。
 
 ## 如何使用
 
