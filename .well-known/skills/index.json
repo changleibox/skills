@@ -1,5 +1,4 @@
 {
-  "$schema": "https://agentskills.io/schemas/index.json",
   "version": "1.0.0",
   "name": "ishop-skills",
   "description": "iShop 项目技能集合 - 包含国际化处理、Git提交、单据生成、WBS拆分、云效Bug管理等技能",
