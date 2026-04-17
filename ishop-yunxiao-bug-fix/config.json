@@ -1,6 +1,6 @@
 {
   "name": "ishop-yunxiao-bug-fix",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "云效（阿里云DevOps平台）Bug工作项全生命周期管理技能，涵盖工作项查询、详情获取、评论提交、状态流转等操作流程",
   "author": "Qoder",
   "category": "project_management",
