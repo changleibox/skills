@@ -66,9 +66,23 @@ curl -s -H "Private-Token: $TOKEN" https://git.graspishop.com/api/v4/user
 - 如果上下文未提及项目 → 调用 API 列出项目让用户选择
 
 ```bash
-# 列出有权限的项目
+# 列出有权限的项目（has_risk: false，直接执行）
 TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
-curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects?membership=true&per_page=20" | jq '.[] | "\(.path_with_namespace)"'
+curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects?membership=true&per_page=100" \
+  | python3 -c "import sys,json; [print(json.dumps({'path': p['path_with_namespace'], 'name': p['name'], 'desc': p.get('description','')}, ensure_ascii=False)) for p in json.loads(sys.stdin.read())]"
+```
+
+**选择项目时，必须展示项目路径和描述：**
+
+```json
+{
+  "question": "请选择要操作的项目：",
+  "options": [
+    {"label": "1. igroup/ishop", "description": "iShop ERP 主项目 - 进销存管理系统"},
+    {"label": "2. igroup/ishop-web", "description": "iShop Web 前端"},
+    {"label": "3. igroup/ancestry", "description": "Ancestry 族谱项目"}
+  ]
+}
 ```
 
 ---

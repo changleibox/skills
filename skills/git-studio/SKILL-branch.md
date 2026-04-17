@@ -6,18 +6,7 @@
 
 **🔄 询问用户（对应 AS 的 Branches 面板分支列表）：**
 
-先执行 `git branch -vv` 获取分支列表，以编号形式展示：
-
-> 分支列表：
-> | # | 分支 | 最新提交 | 说明 |
-> |---|------|----------|------|
-> | 1 | * main | abc1234 用户登录 | 当前分支 |
-> | 2 | develop | def5678 修复样式 | |
-> | 3 | feature/xxx | 7890abc WIP | |
-> | 4 | remotes/origin/main | abc1234 用户登录 | 远程 |
-> | ... | [agent 执行 `git branch -vv` 动态填充] | | |
->
-> 请选择要对哪个分支进行操作（输入编号，或 0 取消）：
+先执行 `git branch -vv` 获取分支列表，通过 `ask_user_question` 提供可点击的分支选项（label=分支名，description=最新提交+说明），用户点击即可选择要操作的分支。
 
 ```bash
 # 查看本地分支（*标记当前分支）
@@ -40,22 +29,10 @@ git branch --no-merged
 ## 创建分支
 
 **🔄 询问用户（对应 AS 的 New Branch 对话框）：**
-> 请提供新分支信息：
-> - **分支名称**：（如 `feature/xxx`、`bugfix/xxx`）
-> - **基于哪个分支创建**？（默认：当前 HEAD）
->
-> 先执行 `git branch -a` 获取分支列表，以编号形式展示：
->
-> | # | 分支 | 说明 |
-> |---|------|------|
-> | 1 | main | 本地 |
-> | 2 | develop | 本地 |
-> | 3 | HEAD | 当前提交 |
-> | ... | [agent 执行 `git branch -a` 动态填充] | |
->
-> 请选择分支编号（默认：3，即当前 HEAD）：
->
-> - **是否立即切换到新分支**？（默认：是）
+
+先询问新分支名称（自由文本输入），然后执行 `git branch -a` 获取分支列表，通过 `ask_user_question` 提供可点击的基础分支选项（label=分支名，description=本地/远程），默认选项为当前 HEAD。
+
+再通过 `ask_user_question` 询问是否立即切换到新分支（默认：是）。
 
 ```bash
 # 基于当前 HEAD 创建
@@ -89,18 +66,7 @@ git switch -c <local-name> origin/<remote-name>
 
 **🔄 询问用户（对应 AS 的 Branches Popup 选择分支）：**
 
-先执行 `git branch -a` 获取分支列表，然后以编号形式展示：
-
-> 切换到哪个分支？
-> | # | 分支 | 说明 |
-> |---|------|------|
-> | 1 | main | 本地 |
-> | 2 | develop | 本地 |
-> | 3 | feature/user-login | 本地 |
-> | 4 | remotes/origin/feature/xxx | 远程（将自动创建本地跟踪分支） |
-> | ... | [agent 执行 `git branch -a` 动态填充] | |
->
-> 请选择分支编号：
+先执行 `git branch -a` 获取分支列表，通过 `ask_user_question` 提供可点击的分支选项（label=分支名，description=本地/远程）。
 
 ```bash
 # 切换到已有分支
@@ -119,15 +85,12 @@ git status --short
 ```
 
 - 工作区干净 → 直接切换
-- 有未提交变更 → **🔄 询问用户（对应 AS 的 Smart Checkout 对话框）：**
+- 有未提交变更 → 通过 `ask_user_question` 询问用户（对应 AS 的 Smart Checkout 对话框），提供以下可点击选项：
 
-> ⚠️ 当前分支有未提交的变更：
-> [列出变更文件]
-> 切换到 `<target-branch>` 前需要处理这些变更：
-> 1. **Smart Checkout**（推荐）— 自动 stash → 切换 → unstash
-> 2. **提交变更** — `git add . && git commit -m "wip: save before switch"` 后切换
-> 3. **强制切换** — 带着变更切换（可能失败）
-> 4. **取消** — 留在当前分支
+> - **Smart Checkout**（推荐）— 自动 stash → 切换 → unstash
+> - **提交变更** — `git add . && git commit -m "wip: save before switch"` 后切换
+> - **强制切换** — 带着变更切换（可能失败）
+> - **取消** — 留在当前分支
 
 **Smart Checkout 实现：**
 ```bash
@@ -137,30 +100,31 @@ git stash pop
 ```
 
 **Smart Checkout 后 unstash 冲突：**
-> ⚠️ 切换成功，但恢复 stash 时产生冲突。
-> 1. **手动解决冲突** — 编辑冲突文件后 `git add .`
-> 2. **丢弃 stash 的变更** — `git checkout -- .`（变更仍在 stash 中）
-> 3. **切回原分支** — 放弃切换
+
+通过 `ask_user_question` 提供可点击选项：
+> - **手动解决冲突** — 编辑冲突文件后 `git add .`
+> - **丢弃 stash 的变更** — `git checkout -- .`（变更仍在 stash 中）
+> - **切回原分支** — 放弃切换
 
 **带着变更切换失败时：**
 ```
 error: Your local changes would be overwritten by checkout
 ```
 **🔄 询问用户：**
-> 带着变更切换失败，目标分支与当前变更有冲突。
-> 1. **Stash 后切换** — `git stash push -m "..."`
-> 2. **提交后切换** — 先 commit 再切换
-> 3. **取消** — 留在当前分支
+
+通过 `ask_user_question` 提供可点击选项：
+> - **Stash 后切换** — `git stash push -m "..."`
+> - **提交后切换** — 先 commit 再切换
+> - **取消** — 留在当前分支
 
 ## 删除分支
 
 **🔄 询问用户（对应 AS 的 Delete Branch 确认对话框）：**
-> 确认删除分支 `<name>`？
-> - 分支状态：[已合并/未合并]
-> - 最后提交：`<last commit message>` (<date>)
-> 1. **删除** — 删除本地分支
-> 2. **删除本地+远程** — 同时删除远程分支
-> 3. **取消**
+
+通过 `ask_user_question` 提供可点击选项（question='确认删除分支 <name>？'）：
+> - **删除** — 删除本地分支
+> - **删除本地+远程** — 同时删除远程分支
+> - **取消**
 
 **未合并分支删除警告：**
 当分支未合并时 `git branch -d` 会拒绝：
@@ -168,11 +132,11 @@ error: Your local changes would be overwritten by checkout
 error: The branch '<name>' is not fully merged.
 ```
 **🔄 询问用户：**
-> ⚠️ 分支 `<name>` 还有未合并的提交！删除后这些提交可能丢失。
-> [列出未合并的提交]
-> 1. **强制删除** (`git branch -D`) — 我确认不再需要这些提交
-> 2. **先合并再删除** — 跳转到合并流程
-> 3. **取消** — 保留分支
+
+通过 `ask_user_question` 提供可点击选项（question='⚠️ 分支 <name> 还有未合并的提交！删除后这些提交可能丢失。'）：
+> - **强制删除** (`git branch -D`) — 我确认不再需要这些提交
+> - **先合并再删除** — 跳转到合并流程
+> - **取消** — 保留分支
 
 ## 重命名分支
 
@@ -212,19 +176,15 @@ git branch -vv
 Android Studio 右下角分支弹出窗中，右键点击分支会显示完整操作菜单：
 
 **🔄 询问用户（对应 AS 分支右键菜单）：**
-> 选中分支：`<branch-name>`
-> 可执行的操作：
-> 1. **Checkout** — 切换到此分支
-> 2. **New Branch from ‘<branch>’...** — 基于此分支创建新分支
-> 3. **Compare with Current** — 与当前分支对比
-> 4. **Show Diff with Working Tree** — 与工作目录对比
-> 5. **Rebase Current onto ‘<branch>’** — 将当前分支变基到此分支
-> 6. **Merge ‘<branch>’ into Current** — 将此分支合并到当前
-> 7. **Checkout and Rebase onto Current** — 先切换到此分支，再变基到当前
-> 8. **Pull into ‘<branch>’ Using Merge/Rebase** — 拉取远程更新
-> 9. **Rename...** — 重命名分支
-> 10. **Delete** — 删除分支
-> 11. **取消**
+
+通过 `ask_user_question` 提供可点击的操作选项（question='分支 <branch-name> 要执行什么操作？'）：
+> - **Checkout** — 切换到此分支
+> - **New Branch from '<branch>'...** — 基于此分支创建新分支
+> - **Compare with Current** — 与当前分支对比
+> - **Merge '<branch>' into Current** — 将此分支合并到当前
+> - **Rebase Current onto '<branch>'** — 将当前分支变基到此分支
+> - **Rename...** — 重命名分支
+> - **Delete** — 删除分支
 
 ```bash
 # 1. Checkout
@@ -269,17 +229,7 @@ git pull --rebase origin <branch>
 
 **🔄 询问用户（对应 AS 的 Compare Branches 对话框）：**
 
-先执行 `git branch -a` 获取分支列表，然后以编号形式展示：
-
-> 选择要对比的分支（当前分支：`<current-branch>`）：
-> | # | 分支 |
-> |---|------|
-> | 1 | main |
-> | 2 | develop |
-> | 3 | feature/xxx |
-> | ... | [agent 执行 `git branch -a` 动态填充] |
->
-> 请选择要对比的分支编号：
+先执行 `git branch -a` 获取分支列表，通过 `ask_user_question` 提供可点击的分支选项（question='选择要对比的分支（当前分支：<current-branch>）'，label=分支名）。
 
 ```bash
 # 两个分支的差异文件列表
