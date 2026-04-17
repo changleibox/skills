@@ -6,45 +6,43 @@
 
 | 技能名称 | 描述 | 分类 |
 |---------|------|------|
-| [ishop-ancestry-i18n](./ishop-ancestry-i18n/) | Ancestry 项目国际化处理工具，自动将中文字符串替换为 S.strings 调用并更新 ARB 文件 | 代码处理 |
-| [ishop-commit](./ishop-commit/) | Git 提交助手，智能生成符合 Conventional Commits 规范的提交信息，并在提交前进行代码审查和验证 | Git 工作流 |
-| [ishop-service-bill](./ishop-service-bill/) | 业务类单据生成工具，基于现有代码架构生成标准化的销售、进货、调拨等物流类单据组件 | 代码生成 |
-| [ishop-wbs-split](./ishop-wbs-split/) | 智能 WBS 拆分工具，通过 AI 协同从网页内容提取表格数据并进行任务拆分 | 项目管理 |
-| [ishop-yunxiao-bug-fix](./ishop-yunxiao-bug-fix/) | 云效 Bug 工作项全生命周期管理，涵盖工作项查询、详情获取、评论提交、状态流转等操作 | 项目管理 |
+| [ishop-ancestry-i18n](./skills/ishop-ancestry-i18n/) | Ancestry 项目国际化处理工具，自动将中文字符串替换为 S.strings 调用并更新 ARB 文件 | 代码处理 |
+| [ishop-commit](./skills/ishop-commit/) | Git 提交助手，智能生成符合 Conventional Commits 规范的提交信息，并在提交前进行代码审查和验证 | Git 工作流 |
+| [ishop-service-bill](./skills/ishop-service-bill/) | 业务类单据生成工具，基于现有代码架构生成标准化的销售、进货、调拨等物流类单据组件 | 代码生成 |
+| [ishop-wbs-split](./skills/ishop-wbs-split/) | 智能 WBS 拆分工具，通过 AI 协同从网页内容提取表格数据并进行任务拆分 | 项目管理 |
+| [ishop-yunxiao-bug-fix](./skills/ishop-yunxiao-bug-fix/) | 云效 Bug 工作项全生命周期管理，涵盖工作项查询、详情获取、评论提交、状态流转等操作 | 项目管理 |
 
 ## 目录结构
 
 ```
-skills/
-├── README.md                    # 本文件
-├── LICENSE                      # MIT 开源许可证
-├── .well-known/
-│   └── skills/
-│       └── index.json           # Skills CLI 索引文件
-├── ishop-ancestry-i18n/         # 国际化处理技能
-│   ├── SKILL.md                # 技能文档（必需）
-│   ├── config.json             # 配置文件
-│   ├── examples.md             # 使用示例
-│   └── scripts/                # 脚本目录
-│       └── i18n_helper.py
-├── ishop-commit/                # Git 提交助手技能
-│   ├── SKILL.md
-│   ├── config.json
-│   └── examples.md
-├── ishop-service-bill/          # 业务单据生成技能
-│   ├── SKILL.md
-│   ├── config.json
-│   └── examples.md
-├── ishop-wbs-split/             # WBS 拆分技能
-│   ├── SKILL.md
-│   ├── config.json
-│   ├── examples.md
-│   └── scripts/
-│       └── wbs_split.py
-└── ishop-yunxiao-bug-fix/       # 云效 Bug 管理技能
-    ├── SKILL.md
-    ├── config.json
-    └── examples.md
+├── skills/
+│   ├── ishop-ancestry-i18n/         # 国际化处理技能
+│   │   ├── SKILL.md                # 技能文档（必需）
+│   │   ├── config.json             # 配置文件
+│   │   ├── examples.md             # 使用示例
+│   │   └── scripts/                # 脚本目录
+│   │       └── i18n_helper.py
+│   ├── ishop-commit/                # Git 提交助手技能
+│   │   ├── SKILL.md
+│   │   ├── config.json
+│   │   └── examples.md
+│   ├── ishop-service-bill/          # 业务单据生成技能
+│   │   ├── SKILL.md
+│   │   ├── config.json
+│   │   └── examples.md
+│   ├── ishop-wbs-split/             # WBS 拆分技能
+│   │   ├── SKILL.md
+│   │   ├── config.json
+│   │   ├── examples.md
+│   │   └── scripts/
+│   │       └── wbs_split.py
+│   └── ishop-yunxiao-bug-fix/       # 云效 Bug 管理技能
+│       ├── SKILL.md
+│       ├── config.json
+│       └── examples.md
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
 ## 技能文件说明
@@ -102,83 +100,28 @@ trigger:                        # 可选，触发关键词
 
 使用 [Skills CLI](https://agentskills.io) 安装此技能仓库。
 
-### 方式一：安装到公共目录（推荐）
-
-公共目录安装后，所有项目都可以使用这些技能，适合个人开发者。
+### GitHub 原生安装（推荐）
 
 ```bash
-# 安装到公共目录（默认 ~/.skills/）
-npx skills add https://gitee.com/changleibox/skills.git -y
-
-# 或显式指定公共目录
-npx skills add https://gitee.com/changleibox/skills.git -y --global
+npx skills add changleibox/skills
 ```
-
-**安装位置**：
-- macOS/Linux: `~/.skills/`
-- Windows: `%USERPROFILE%\.skills\`
-
-**优点**：
-- ✅ 所有项目共享同一份技能
-- ✅ 一次安装，处处可用
-- ✅ 便于统一管理和更新
-
-### 方式二：安装到项目目录
-
-项目目录安装后，技能仅在当前项目内可用，适合团队协作。
-
-```bash
-# 在项目根目录下执行
-cd /path/to/your-project
-npx skills add https://gitee.com/changleibox/skills.git -y --local
-```
-
-**安装位置**：
-- 项目目录下的 `.agents/skills/`
-
-**优点**：
-- ✅ 团队成员自动获得相同技能
-- ✅ 可纳入 Git 版本控制
-- ✅ 项目间技能版本隔离
 
 ### 查看已安装的技能
 
 ```bash
-# 查看所有已安装技能
 npx skills list
-
-# 查看特定仓库的技能
-npx skills list --repo https://gitee.com/changleibox/skills.git
 ```
 
 ## 更新
 
-### 更新技能仓库
-
 ```bash
-# 更新公共目录的技能
-npx skills update https://gitee.com/changleibox/skills.git
-
-# 更新项目目录的技能
-cd /path/to/your-project
-npx skills update https://gitee.com/changleibox/skills.git --local
-```
-
-### 更新所有技能
-
-```bash
-# 更新所有已安装的技能仓库
-npx skills update --all
+npx skills update changleibox/skills
 ```
 
 ## 卸载
 
 ```bash
-# 卸载特定仓库
-npx skills remove https://gitee.com/changleibox/skills.git
-
-# 卸载所有技能
-npx skills remove --all
+npx skills remove changleibox/skills
 ```
 
 ## 兼容性
