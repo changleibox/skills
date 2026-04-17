@@ -95,7 +95,30 @@ mcp_RAM_get_work_item 参数说明：
   - workItemId: 工作项唯一标识（必填）
 ```
 
-获取详情后，向用户展示Bug的完整信息（标题、描述、复现步骤、优先级、创建人等），然后使用 `AskUserQuestion` 工具询问处理方式，选项包括：
+**获取附件（如果有的话）**：
+```text
+mcp_RAM_list_workitem_attachments 参数说明：
+  - organizationId: 组织ID（必填）
+  - workItemId: 工作项ID（必填）
+```
+
+获取详情后，向用户展示Bug的完整信息：
+
+1. **基本信息**：标题、描述、复现步骤、优先级、创建人等
+2. **附件展示**：
+   - 如果有截图/图片附件，使用 `mcp_RAM_get_workitem_file` 获取下载链接
+   - 展示图片给用户查看（使用 Markdown 图片语法：`![描述](图片URL)`）
+   - 列出其他附件文件名和大小
+
+**附件处理流程**：
+1. 调用 `mcp_RAM_list_workitem_attachments` 获取附件列表
+2. 遍历附件列表，识别图片类型（.png, .jpg, .jpeg, .gif, .webp 等）
+3. 对于图片附件：
+   - 调用 `mcp_RAM_get_workitem_file` 获取临时下载URL
+   - 使用 Markdown 语法展示图片：`![Bug截图](下载URL)`
+4. 对于其他附件：列出文件名、大小、上传时间
+
+展示完详情后，使用 `AskUserQuestion` 工具询问处理方式，选项包括：
 
 - **"修复此Bug"**：进入步骤四A（执行修复）
 - **"不是我负责的，转给其他人"**：进入步骤四B（转交负责人）
