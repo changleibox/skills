@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
-  "name": "ishop-skills",
-  "description": "iShop 项目技能集合 - 包含国际化处理、Git提交、单据生成、WBS拆分、云效Bug管理等技能",
-  "author": "iShop Team",
+  "name": "skills",
+  "description": "个人技能集合 - 包含 iShop 系列工具（国际化处理、Git提交、单据生成、WBS拆分、云效Bug管理）等开发辅助技能",
+  "author": "changlei",
   "license": "MIT",
   "repository": "https://gitee.com/changleibox/skills",
   "skills": [
