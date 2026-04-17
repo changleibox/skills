@@ -36,6 +36,19 @@ git stash push -p
 
 ### 查看 Stash
 
+**🔄 询问用户（列出 Stash 列表）：**
+
+先执行 `git stash list` 获取列表，以编号形式展示：
+
+> Stash 列表：
+> | # | 描述 | 时间 | 分支 |
+> |---|------|------|------|
+> | 0 | WIP: 用户系统重构 | 2小时前 | feature/xxx |
+> | 1 | 临时保存 | 昨天 | develop |
+> | ... | [agent 执行 `git stash list` 动态填充] | | |
+>
+> 请选择要对哪个 stash 进行操作（输入编号，或 0 取消）：
+
 ```bash
 # 列出所有 stash
 git stash list
@@ -366,6 +379,43 @@ git checkout -b <recovery-branch> HEAD@{N}
 ## Worktree — 多工作树
 
 Android Studio 不直接支持，但是处理多分支并行开发的利器：
+
+### 创建 Worktree
+
+**🔄 询问用户（创建多工作树）：**
+
+先执行 `git branch -a` 获取分支列表，以编号形式展示：
+
+> 为哪个分支创建工作树？
+> | # | 分支 | 说明 |
+> |---|------|------|
+> | 1 | main | 本地 |
+> | 2 | develop | 本地 |
+> | 3 | feature/xxx | 本地 |
+> | ... | [agent 执行 `git branch -a` 动态填充] | |
+>
+> 请选择分支编号：
+>
+> - **工作目录路径**：（如 `../project-feature-xxx`）
+> - **是否创建新分支**？（默认：否，使用现有分支）
+
+### 管理 Worktree
+
+**🔄 询问用户（列出/删除工作树）：**
+
+先执行 `git worktree list` 获取列表，以编号形式展示：
+
+> 工作树列表：
+> | # | 路径 | 分支 | 状态 |
+> |---|------|------|------|
+> | 1 | /path/to/main | main | 干净 |
+> | 2 | /path/to/feature | feature/xxx | 有变更 |
+> | ... | [agent 执行 `git worktree list` 动态填充] | | |
+>
+> 请选择操作：
+> 1. **删除工作树** — 输入编号删除
+> 2. **清理失效工作树** — `git worktree prune`
+> 3. **取消**
 
 ```bash
 # 为其他分支创建独立工作目录

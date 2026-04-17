@@ -237,6 +237,26 @@ git checkout -b <new-branch> <commit-hash>
 
 Android Studio 的 "Annotate with Git Blame" 等价：
 
+**🔄 询问用户（选择文件进行 Blame）：**
+
+先执行 `git status --short` 获取变更文件列表，以编号形式展示：
+
+> 选择要查看 blame 的文件：
+> | # | 状态 | 文件 |
+> |---|------|------|
+> | 1 | M | src/pages/home.dart |
+> | 2 | M | src/models/user.dart |
+> | 3 | A | src/pages/login.dart |
+> | ... | [agent 执行 `git status` 或列出仓库文件动态填充] | |
+>
+> 请选择文件编号：
+>
+> - **查看方式**：
+>   1. **标准 blame** — 显示每行最后修改者
+>   2. **忽略空白** — `git blame -w`
+>   3. **检测行移动** — `git blame -M`（文件内）
+>   4. **检测跨文件复制** — `git blame -C`
+
 ```bash
 # 查看文件每一行的最后修改者
 git blame <file>
@@ -449,6 +469,20 @@ git diff origin/<branch>
 ## Tag — 标签管理
 
 ### 查看标签
+
+**🔄 询问用户（对应 AS 的 Tags 列表）：**
+
+先执行 `git tag --sort=-creatordate` 获取标签列表，以编号形式展示：
+
+> 标签列表：
+> | # | 标签 | 指向提交 | 说明 |
+> |---|------|----------|------|
+> | 1 | v1.2.0 | abc1234 | 最新版本 |
+> | 2 | v1.1.0 | def5678 | |
+> | 3 | v1.0.0 | ghi9012 | 初始版本 |
+> | ... | [agent 执行 `git tag` 动态填充] | | |
+>
+> 请选择要对哪个标签进行操作（输入编号，或 0 取消）：
 
 ```bash
 # 列出所有标签

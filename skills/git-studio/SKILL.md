@@ -719,6 +719,26 @@ git restore --source=<commit> <file>
 
 对应 AS 的 **Git → Show History**：
 
+**🔄 询问用户（查看文件历史）：**
+
+先执行 `git status --short` 获取变更文件列表，以编号形式展示：
+
+> 选择要查看历史的文件：
+> | # | 状态 | 文件 |
+> |---|------|------|
+> | 1 | M | src/pages/home.dart |
+> | 2 | M | src/models/user.dart |
+> | 3 | A | src/pages/login.dart |
+> | ... | [agent 执行 `git status` 或列出仓库文件动态填充] | |
+>
+> 请选择文件编号：
+>
+> - **查看方式**：
+>   1. **简洁历史** — `git log --oneline`
+>   2. **含重命名追踪** — `git log --follow`
+>   3. **详细 diff** — `git log -p`
+>   4. **统计概览** — `git log --stat`
+
 ```bash
 # 查看文件的提交历史
 git log --oneline -- <file>
