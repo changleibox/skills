@@ -1,6 +1,6 @@
 {
   "name": "ishop-yunxiao-bug-fix",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "云效（阿里云DevOps平台）Bug工作项全生命周期管理技能，涵盖工作项查询、详情获取、评论提交、状态流转等操作流程",
   "author": "Qoder",
   "category": "project_management",
@@ -85,7 +85,7 @@
       },
       {
         "name": "handle_action",
-        "description": "处理用户选择的操作（修复/转交/无法复现）"
+        "description": "处理用户选择的操作（修复/转交/无法复现/不是问题/需要更多信息）"
       },
       {
         "name": "submit_comment",
@@ -105,9 +105,24 @@
       "sections": ["问题原因", "修改描述", "影响范围", "自测结果"],
       "format": "plain_text"
     },
+    "transfer_comment": {
+      "title": "转交说明",
+      "sections": ["转交原因"],
+      "format": "plain_text"
+    },
     "cannot_reproduce_comment": {
       "title": "无法复现说明",
       "sections": ["复现结果", "测试环境", "测试操作", "结论"],
+      "format": "plain_text"
+    },
+    "not_issue_comment": {
+      "title": "不是问题说明",
+      "sections": ["分析结果", "问题描述", "实际行为", "原因说明", "建议"],
+      "format": "plain_text"
+    },
+    "need_more_info_comment": {
+      "title": "需要更多信息说明",
+      "sections": ["状态", "缺少的信息"],
       "format": "plain_text"
     }
   },
