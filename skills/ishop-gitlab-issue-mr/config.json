@@ -1,7 +1,7 @@
 {
   "name": "ishop-gitlab-issue-mr",
-  "version": "1.2.0",
-  "description": "iShop GitLab (git.graspishop.com) 仓库 Issue、Merge Request 和分支全生命周期管理技能，支持完整的开发工作流",
+  "version": "1.4.0",
+  "description": "iShop GitLab 开发工作流管理。当用户说'提个issue'、'建个MR'、'开个分支'、'我要开发XX'、'这个bug我来修'、'帮我提交一下合并请求'、'看看我的issue'、'审核通过了合一下'、'新功能要做'等任何 GitLab Issue/MR/分支操作时触发",
   "author": "Qoder",
   "category": "git_workflow",
   "tags": ["gitlab", "issue", "merge-request", "branch", "workflow", "code-review"],
@@ -12,6 +12,19 @@
       "install": {
         "macos": "brew install glab",
         "linux": "curl -sL https://raw.githubusercontent.com/profclems/glab/trunk/scripts/install.sh | sh"
+      }
+    }
+  },
+  "intent_recognition": {
+    "rule": "用户说的内容 = 任务名称，不是指令。不要解析其中的数字为 Bug/Issue 编号，不要试图解决具体技术问题",
+    "examples": {
+      "我要修改9745的bug": {
+        "task_name": "修改9745的bug",
+        "wrong_interpretation": "查找编号9745的Bug"
+      },
+      "修复登录崩溃": {
+        "task_name": "修复登录崩溃",
+        "wrong_interpretation": "帮用户调试代码"
       }
     }
   },
@@ -82,14 +95,6 @@
           {"label": "🔄 切换到其他项目", "description": "列出 iShop GitLab 上的项目"},
           {"label": "✏️ 手动输入项目路径", "description": "直接输入项目路径（如 igroup/ishop）"},
           {"label": "❌ 取消操作", "description": ""}
-        ]
-      },
-      "issue_id_provided": {
-        "condition": "用户提供了 Issue/MR ID",
-        "search_command": "glab api issues --search {issue_id}",
-        "options": [
-          {"label": "✅ 是，继续操作", "description": "使用检测到的项目"},
-          {"label": "🔄 切换到其他项目", "description": "列出其他项目"}
         ]
       }
     }
@@ -213,12 +218,12 @@
     }
   },
   "trigger_keywords": {
-    "issue_create": ["创建issue", "提issue", "记录问题", "新建issue", "创建一个问题"],
-    "issue_query": ["查看issue", "我的issue", "待处理issue", "issue列表"],
-    "mr_create": ["创建mr", "提交mr", "合并请求", "发起pr", "代码审查", "提mr"],
-    "mr_query": ["查看mr", "我的mr", "待审核mr", "mr列表"],
-    "branch_create": ["创建分支", "新建分支", "开发分支"],
-    "full_flow": ["我要开发", "新功能", "修复bug", "开发一个"]
+    "issue_create": ["提个issue", "建个issue", "记一下这个问题", "帮我提个issue", "有个需求要记录", "创建一个问题"],
+    "issue_query": ["看看我的issue", "我有哪些issue", "待处理的issue", "issue列表", "有什么issue"],
+    "mr_create": ["提个MR", "建个合并请求", "帮我提交一下MR", "发个PR", "代码写好了提交审核", "提一下MR"],
+    "mr_query": ["看看我的MR", "有哪些MR要审", "待审核的MR", "MR列表", "我提的MR怎么样了"],
+    "branch_create": ["开个分支", "建个分支", "拉个开发分支"],
+    "full_flow": ["我要开发", "我要修改", "我要修复", "我要解决", "修改XX的bug", "修复XX", "解决XX问题", "新功能", "开发一个", "帮我走一下开发流程"]
   },
   "constraints": {
     "require_issue_for_mr": {
