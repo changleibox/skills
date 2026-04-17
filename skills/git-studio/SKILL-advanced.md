@@ -54,8 +54,18 @@ git stash show stash@{N}
 ### 恢复 Stash
 
 **🔄 询问用户（对应 AS 的 Unstash Changes 对话框）：**
+
+先执行 `git stash list` 获取 stash 列表，然后以编号形式展示：
+
 > 要恢复哪个 stash？
-> [列出 stash 列表，含描述和时间]
+> | # | 描述 | 时间 |
+> |---|------|------|
+> | 0 | WIP: 用户系统重构 | 2小时前 |
+> | 1 | 首页临时修改 | 昨天 |
+> | ... | [agent 执行 `git stash list` 动态填充] | |
+>
+> 请选择 stash 编号：
+>
 > 恢复方式：
 > 1. **Pop**（默认）— 恢复并从列表删除
 > 2. **Apply** — 恢复但保留在列表中
@@ -769,7 +779,7 @@ Android Studio 的 **Settings → Version Control → Git** 等价操作。
 > | 9 | **自动 GPG 签名** (commit.gpgsign) | [agent 读取展示] |
 > | 10 | **查看全部配置** — 列出所有 git config |
 >
-> 请输入要修改的配置项编号（可多选，逗号分隔）：
+> 请选择要修改的配置项编号（可多选，逗号分隔）：
 
 ```bash
 # 查看所有配置

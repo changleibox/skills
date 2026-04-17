@@ -2,10 +2,16 @@
 
 本文档提供 `ishop-gitlab-issue-mr` 技能的使用示例，帮助快速上手。
 
-**⚠️ 标准工作流程：**
+**⚠️ 标准工作流程（全自动执行，无需逐步确认）：**
 ```
 创建 Issue → 创建 Draft MR + 关联分支 → 本地拉取开发 → 推送代码 → Draft 转正式 → 请求审核 → 合并（自动关闭 Issue/MR/删除分支）
 ```
+
+**核心原则：**
+- curl API 调用默认直接执行，不询问用户
+- Issue 类型根据名称自动推断
+- 指派人自动为当前登录用户
+- 仅在必要时询问（选择项目、命名不合规、合并/删除等不可逆操作）
 
 ---
 
@@ -45,29 +51,25 @@ export GITLAB_TOKEN="glpat-xxxxxxxxxxxxxxxx"
 **步骤3：验证配置**
 
 ```bash
-# 验证 glab CLI 认证状态
-glab auth status
+# 获取 Token
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 
-# 或测试 API 访问
-curl -H "Private-Token: $(git config --global gitlab.token)" \
-  https://git.graspishop.com/api/v4/user
+# 测试 API 访问
+curl -s -H "Private-Token: $TOKEN" https://git.graspishop.com/api/v4/user
 ```
 
 ### 项目识别
 
-**自动检测：** 技能通过当前目录的 Git 配置自动识别项目
+**上下文驱动：** 技能通过对话上下文推断要操作的项目，而非检测当前目录
+
+- 如果用户提到了项目名称 → 直接使用
+- 如果上下文未提及项目 → 调用 API 列出项目让用户选择
 
 ```bash
-# 确保在 Git 仓库目录内操作
-cd /path/to/your/project
-
-# 验证项目识别
-git remote get-url origin
-# 输出示例：git@git.graspishop.com:igroup/ishop.git
+# 列出有权限的项目
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
+curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects?membership=true&per_page=20" | jq '.[] | "\(.path_with_namespace)"'
 ```
-
-**项目解析规则：**
-- `git@git.graspishop.com:igroup/ishop.git` → 项目 `igroup/ishop`
 
 ---
 
@@ -76,144 +78,58 @@ git remote get-url origin
 ### 用户输入
 
 ```
-我要开发一个用户登录功能
+在 igroup/ishop 项目下，我要开发一个用户登录功能
 ```
 
-### Agent 执行流程
+### Agent 执行流程（全自动，无需用户逐步确认）
 
 **步骤1：识别意图并确定项目**
 
 ```
 ✅ 识别为：新功能开发
+✅ 从上下文识别项目：igroup/ishop
+✅ 自动推断 Issue 类型：feature（关键词：开发、功能）
 ```
 
-**检测当前项目：**
+**步骤2：获取 Token 和当前用户（自动执行）**
+
 ```bash
-git remote get-url origin
-# 输出：git@git.graspishop.com:igroup/ishop.git
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
+USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq '.id')
 ```
 
-**项目确认（使用 ask_user_question）：**
+**步骤3：校验命名合规性**
 
-```json
-{
-  "question": "✅ 检测到项目：igroup/ishop，是否在此项目下操作？",
-  "options": [
-    {"label": "✅ 是，继续操作", "description": "使用当前项目"},
-    {"label": "🔄 切换到其他项目", "description": "列出所有有权限的项目"}
-  ]
-}
+```
+✅ 标题 "用户登录功能" 合规（无特殊字符）
+✅ 分支名 "421-用户登录功能" 合规
 ```
 
-**步骤2：创建 Issue（交互选择）**
+> 如果名称包含 `< > : " / \ | ? * # %` 等特殊字符，会要求用户重新提供合规名称。
 
-**2.1 选择 Issue 类型：**
-```json
-{
-  "question": "📋 请选择 Issue 类型：",
-  "options": [
-    {"label": "🚀 feature", "description": "新功能开发"},
-    {"label": "🐛 bug", "description": "Bug 修复"},
-    {"label": "✨ improvement", "description": "优化改进"}
-  ]
-}
-```
+**步骤4：创建 Issue（自动执行）**
 
-**2.2 确认 Issue 标题：**
-```json
-{
-  "question": "📋 Issue 标题：",
-  "options": [
-    {"label": "✅ 用户登录功能", "description": "使用建议标题"},
-    {"label": "✏️ 修改标题", "description": "手动输入新标题"}
-  ]
-}
-```
-
-**2.3 选择指派人：**
 ```bash
-# 获取项目成员
-glab api projects/igroup%2Fishop/members --jq '.[] | "\(.name) (@\(.username))"'
-```
-
-```json
-{
-  "question": "📋 请选择指派人：",
-  "options": [
-    {"label": "张三 (@zhangsan)", "description": ""},
-    {"label": "李四 (@lisi)", "description": ""},
-    {"label": "👤 不指派", "description": "稍后指定"}
-  ]
-}
-```
-
-**2.4 创建 Issue：**
-```bash
-glab issue create \
-  --title "用户登录功能" \
-  --description "## 描述
-实现用户登录功能，支持账号密码登录和第三方登录。
-
-## 验收标准
-- [ ] 账号密码登录
-- [ ] 记住密码功能
-- [ ] 登录状态持久化"
+curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"title": "用户登录功能", "description": "## 描述\n实现用户登录功能，支持账号密码登录和第三方登录。\n\n## 验收标准\n- [ ] 账号密码登录\n- [ ] 记住密码功能\n- [ ] 登录状态持久化", "labels": "feature", "assignee_ids": ['$USER_ID']}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/issues"
 ```
 
 **输出：**
 ```
 ✅ Issue #421 已创建
+   类型: feature（自动推断）
+   指派: 当前用户（自动）
    URL: https://git.graspishop.com/igroup/ishop/-/issues/421
 ```
 
-**步骤3：创建 Draft MR + 关联分支（交互选择）**
+**步骤5：创建 Draft MR + 关联分支（自动执行）**
 
-**3.1 选择目标分支：**
-```json
-{
-  "question": "📋 请选择目标分支：",
-  "options": [
-    {"label": "main", "description": "主分支"},
-    {"label": "develop", "description": "开发分支"}
-  ]
-}
-```
-
-**3.2 确认分支名称：**
-```json
-{
-  "question": "📋 分支名称：",
-  "options": [
-    {"label": "✅ 421-用户登录功能", "description": "使用建议名称"},
-    {"label": "✏️ 修改分支名", "description": "手动输入新名称"}
-  ]
-}
-```
-
-**3.3 确认创建 Draft MR：**
-```json
-{
-  "question": "📋 确认创建 Draft MR？",
-  "options": [
-    {"label": "✅ 创建 Draft MR", "description": "创建并关联分支"},
-    {"label": "⏸️ 暂不创建 MR", "description": "仅创建 Issue"}
-  ]
-}
-```
-
-**创建 MR：**
 ```bash
-glab mr create \
-  --title "Draft: Resolve \"用户登录功能\"" \
-  --description "## 变更概述
-🚧 开发中...
-
-## 关联 Issue
-Closes #421" \
-  --draft \
-  --source-branch 421-用户登录功能 \
-  --target-branch main \
-  --create-source-branch
+# 自动确定：目标分支 main，源分支 421-用户登录功能
+curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"source_branch": "421-用户登录功能", "target_branch": "main", "title": "Draft: Resolve \"用户登录功能\"", "description": "## 变更概述\n🚧 开发中...\n\n## 关联 Issue\nCloses #421", "assignee_id": '$USER_ID'}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests"
 ```
 
 **输出：**
@@ -225,7 +141,7 @@ Closes #421" \
 现在可以拉取分支开始开发了。
 ```
 
-**步骤4：本地拉取分支开发**
+**步骤6：本地拉取分支开发**
 
 ```bash
 git fetch --all
@@ -234,43 +150,40 @@ git checkout 421-用户登录功能
 # 开始开发...
 ```
 
-**步骤5：开发完成，推送代码**
+**步骤7：开发完成，推送代码**
 
 ```bash
-# 开发完成后
 git add .
 git commit -m "实现用户登录功能"
 git push origin 421-用户登录功能
 ```
 
-**步骤6：Draft 转正式状态**
+**步骤8：Draft 转正式状态（自动执行）**
 
 用户说："登录功能开发完成了"
 
 ```bash
-# 将 Draft MR 转为正式状态
-glab mr ready 45
-
-# MR 标题自动变为：Resolve "用户登录功能"
+curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"title": "Resolve \"用户登录功能\""}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/45"
 ```
 
-**步骤7：请求审核**
+**步骤9：请求审核**
 
 ```
 ✅ MR !45 已准备就绪
 
 @reviewer 您好，MR !45 已准备就绪，请审核。
-MR 链接：https://git.graspishop.com/team/project/-/merge_requests/45
+MR 链接：https://git.graspishop.com/igroup/ishop/-/merge_requests/45
 ```
 
-**步骤8：审核、合并**
+**步骤10：合并（需用户确认 - 不可逆操作）**
 
 ```bash
-# 审核人审核通过
-glab mr approve 45
-
-# 合并 MR
-glab mr merge 45 --delete-branch
+# 合并 MR（删除源分支）
+curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"should_remove_source_branch": true}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/45/merge"
 ```
 
 **输出：**
@@ -290,53 +203,33 @@ glab mr merge 45 --delete-branch
 需要修复登录页面在输入特殊字符时崩溃的问题
 ```
 
-### Agent 执行流程
+### Agent 执行流程（全自动）
 
-**步骤1：识别意图**
+**步骤1：识别意图并自动推断**
 
 ```
-✅ 识别为：Bug 修复
-📝 创建 Issue 记录此问题
+✅ 识别为：Bug 修复（关键词：修复、崩溃）
+✅ 自动推断 Issue 类型：bug
+✅ 上下文未指定项目 → 询问用户选择项目
 ```
 
-**步骤2：创建 Issue**
+**步骤2：创建 Issue（自动执行）**
 
 ```bash
-glab issue create \
-  --title "[Bug] 登录页面输入特殊字符时崩溃" \
-  --description "## 问题描述
-当用户在登录页面输入特殊字符（如 emoji 或特殊符号）时，应用发生崩溃。
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
+USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq '.id')
 
-## 复现步骤
-1. 打开登录页面
-2. 在用户名输入框输入特殊字符
-3. 点击登录按钮
-4. 应用崩溃
-
-## 预期行为
-应正确处理特殊字符，给出友好的错误提示。
-
-## 影响范围
-- 登录页面
-- 输入验证模块" \
-  --label "bug,high-priority"
+curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"title": "登录页面输入特殊字符时崩溃", "description": "## 问题描述\n当用户在登录页面输入特殊字符时，应用发生崩溃。\n\n## 复现步骤\n1. 打开登录页面\n2. 在用户名输入框输入特殊字符\n3. 点击登录按钮\n4. 应用崩溃\n\n## 预期行为\n应正确处理特殊字符，给出友好的错误提示。", "labels": "bug,high-priority", "assignee_ids": ['$USER_ID']}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/issues"
 ```
 
-**步骤3：创建 Draft MR + 关联分支**
+**步骤3：创建 Draft MR + 关联分支（自动执行）**
 
 ```bash
-glab mr create \
-  --title "Draft: Resolve \"登录页面输入特殊字符时崩溃\"" \
-  --description "## 问题
-登录页面在输入特殊字符时发生崩溃。
-
-🚧 修复中...
-
-Fixes #974" \
-  --draft \
-  --source-branch 974-登录特殊字符崩溃 \
-  --target-branch main \
-  --create-source-branch
+curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"source_branch": "974-登录特殊字符崩溃", "target_branch": "main", "title": "Draft: Resolve \"登录页面输入特殊字符时崩溃\"", "description": "## 问题\n登录页面在输入特殊字符时发生崩溃。\n\n🚧 修复中...\n\nFixes #974", "assignee_id": '$USER_ID'}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests"
 ```
 
 **步骤4：本地拉取分支修复**
@@ -356,16 +249,20 @@ git commit -m "添加输入验证防止特殊字符崩溃"
 git push origin 974-登录特殊字符崩溃
 ```
 
-**步骤6：Draft 转正式状态并请求审核**
+**步骤6：Draft 转正式状态（自动执行）**
 
 ```bash
-glab mr ready 46
+curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"title": "Resolve \"登录页面输入特殊字符时崩溃\""}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/46"
 ```
 
-**步骤7：合并**
+**步骤7：合并（需用户确认）**
 
 ```bash
-glab mr merge 46 --delete-branch
+curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"should_remove_source_branch": true}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/46/merge"
 
 # 自动触发：关闭 Issue #974、删除分支
 ```
@@ -380,17 +277,20 @@ glab mr merge 46 --delete-branch
 我有什么待处理的工作？
 ```
 
-### Agent 执行流程
+### Agent 执行流程（自动执行）
 
 ```bash
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
+USERNAME=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq -r '.username')
+
 # 查询指派给我的 Issues
-glab issue list --assignee=@me --state=opened
+curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/issues?assignee_username=$USERNAME&state=opened"
 
 # 查询我创建的 MR
-glab mr list --author=@me --state=opened
+curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests?author_username=$USERNAME&state=opened"
 
 # 查询待我审核的 MR
-glab mr list --reviewer=@me --state=opened
+curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests?reviewer_username=$USERNAME&state=opened"
 ```
 
 ### 输出示例
@@ -399,16 +299,16 @@ glab mr list --reviewer=@me --state=opened
 📋 您的工作状态汇总
 
 🔴 待处理的 Issues (3个)
-   #126 [Feature] 商品搜索功能
-   #125 [Bug] 列表加载性能问题
-   #124 [Bug] 登录页面特殊字符导致崩溃
+   #126 商品搜索功能 [feature]
+   #125 列表加载性能问题 [bug]
+   #124 登录页面特殊字符导致崩溃 [bug]
 
 🟡 待审核的 MRs (2个)
-   !48 feat: 订单导出功能
-   !47 fix: 修复支付金额计算错误
+   !48 订单导出功能
+   !47 修复支付金额计算错误
 
 🟢 我创建的 MRs (1个)
-   !45 feat(auth): 实现用户登录功能 [待审核]
+   !45 实现用户登录功能 [待审核]
 ```
 
 ---
@@ -421,24 +321,20 @@ glab mr list --reviewer=@me --state=opened
 创建一个 issue：优化商品列表的加载性能
 ```
 
-### Agent 执行流程
+### Agent 执行流程（自动执行）
+
+```
+✅ 自动推断 Issue 类型：improvement（关键词：优化）
+✅ 标题 "优化商品列表的加载性能" 合规
+```
 
 ```bash
-glab issue create \
-  --title "[Improvement] 优化商品列表加载性能" \
-  --description "## 当前问题
-商品列表在数据量大时加载缓慢，影响用户体验。
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
+USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq '.id')
 
-## 优化建议
-- 实现分页加载
-- 添加列表懒加载
-- 优化数据查询
-
-## 验收标准
-- [ ] 列表加载时间 < 1秒
-- [ ] 内存占用优化 50%
-- [ ] 滚动流畅度提升" \
-  --label "improvement,performance"
+curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"title": "优化商品列表的加载性能", "description": "## 当前问题\n商品列表在数据量大时加载缓慢，影响用户体验。\n\n## 优化建议\n- 实现分页加载\n- 添加列表懒加载\n- 优化数据查询\n\n## 验收标准\n- [ ] 列表加载时间 < 1秒\n- [ ] 内存占用优化 50%\n- [ ] 滚动流畅度提升", "labels": "improvement,performance", "assignee_ids": ['$USER_ID']}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/issues"
 ```
 
 ---
@@ -451,29 +347,37 @@ glab issue create \
 审核 MR !48
 ```
 
-### Agent 执行流程
+### Agent 执行流程（自动执行查询，审核操作需确认）
 
-**步骤1：查看 MR 详情**
+**步骤1：查看 MR 详情（自动执行）**
 
 ```bash
-glab mr view 48
-glab mr diff 48
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
+
+# 查看 MR 详情
+curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48"
+
+# 查看 MR 变更
+curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48/changes"
 ```
 
 **步骤2：审核决策**
 
 **情况A：通过审核**
 ```bash
-glab mr approve 48
-glab mr note 48 --message "LGTM! 代码质量良好，测试覆盖充分。"
+curl -s -X POST -H "Private-Token: $TOKEN" \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48/approve"
+
+curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"body": "LGTM! 代码质量良好，测试覆盖充分。"}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48/notes"
 ```
 
 **情况B：请求修改**
 ```bash
-glab mr review 48 --request-changes --message "请处理以下问题：
-1. 缺少单元测试
-2. 命名不够清晰，建议使用更具描述性的变量名
-3. 注释使用中文，建议统一使用英文"
+curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"body": "请处理以下问题：\n1. 缺少单元测试\n2. 命名不够清晰\n3. 注释建议统一使用英文"}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48/notes"
 ```
 
 ---
@@ -486,21 +390,25 @@ glab mr review 48 --request-changes --message "请处理以下问题：
 合并 MR !45
 ```
 
-### Agent 执行流程
+### Agent 执行流程（合并为不可逆操作，需用户确认）
 
 ```bash
-# 检查 MR 状态
-glab mr view 45
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 
-# 执行合并
-glab mr merge 45 --delete-branch
+# 检查 MR 状态（自动执行）
+curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/45"
+
+# 执行合并（用户确认后执行）
+curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"should_remove_source_branch": true}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/45/merge"
 ```
 
 **输出：**
 ```
 ✅ MR !45 已合并
-   分支 feature/123-user-login 已删除
-   Issue #123 已自动关闭
+   分支 421-用户登录功能 已删除
+   Issue #421 已自动关闭
 ```
 
 ---
@@ -550,20 +458,15 @@ git branch -a
 创建一个草稿 MR，先保存当前进度
 ```
 
-### Agent 执行流程
+### Agent 执行流程（自动执行）
 
 ```bash
-glab mr create \
-  --title "Draft: feat: 商品搜索功能" \
-  --description "🚧 WIP: 功能开发中
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
+USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq '.id')
 
-## 当前进度
-- [x] 搜索 UI
-- [ ] 搜索逻辑
-- [ ] 性能优化
-
-Relates to #126" \
-  --draft
+curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"source_branch": "126-商品搜索功能", "target_branch": "main", "title": "Draft: 商品搜索功能", "description": "🚧 WIP: 功能开发中\n\n## 当前进度\n- [x] 搜索 UI\n- [ ] 搜索逻辑\n- [ ] 性能优化\n\nRelates to #126", "assignee_id": '$USER_ID'}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests"
 ```
 
 **输出：**
@@ -572,24 +475,26 @@ Relates to #126" \
    ID: !50
    状态: Draft (草稿)
 
-开发完成后，可以转换为正式 MR：
-   glab mr ready 50
+开发完成后，使用以下命令转为正式 MR：
+curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"title": "商品搜索功能"}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/50"
 ```
 
 ---
 
 ## 常见场景速查
 
-| 场景 | 用户输入 | Agent 操作 |
-|------|----------|------------|
-| 开始新功能 | "我要开发XX功能" | 创建 Issue → 创建 Draft MR + 分支 |
-| 报告Bug | "发现一个bug：XX" | 创建 Issue |
-| 开始修复 | "开始修复 issue #X" | 创建 Draft MR + 分支 |
-| 拉取分支开发 | "拉取分支"、"开始开发" | git checkout 远程分支 |
-| 开发完成 | "开发完成了"、"准备好了" | Draft MR 转正式 → 请求审核 |
-| 查看工作 | "我有什么工作" | 查询 Issues 和 MRs |
-| 审核代码 | "审核 MR !XX" | 查看 MR → 批准/请求修改 |
-| 合并代码 | "合并 MR !XX" | 合并 → 自动关闭 Issue/删除分支 |
+| 场景 | 用户输入 | Agent 操作 | 是否自动 |
+|------|----------|------------|----------|
+| 开始新功能 | "我要开发XX功能" | 创建 Issue → 创建 Draft MR + 分支 | ✅ 全自动 |
+| 报告Bug | "发现一个bug：XX" | 创建 Issue（类型自动推断为 bug） | ✅ 全自动 |
+| 开始修复 | "开始修复 issue #X" | 创建 Draft MR + 分支 | ✅ 全自动 |
+| 拉取分支开发 | "拉取分支"、"开始开发" | git checkout 远程分支 | ✅ 全自动 |
+| 开发完成 | "开发完成了" | Draft MR 转正式 → 请求审核 | ✅ 全自动 |
+| 查看工作 | "我有什么工作" | 查询 Issues 和 MRs | ✅ 全自动 |
+| 审核代码 | "审核 MR !XX" | 查看 MR → 批准/请求修改 | ✅ 查询自动 |
+| 合并代码 | "合并 MR !XX" | 合并 → 自动关闭 Issue/删除分支 | ⚠️ 需确认 |
 
 ## 命名规范速查
 
@@ -607,33 +512,43 @@ Relates to #126" \
 ### 认证失败
 
 ```bash
-$ glab issue list
-Error: authentication failed
+$ curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user"
+{"message":"401 Unauthorized"}
 
-# 解决
-export GITLAB_TOKEN="glpat-xxxxxxxx"
-glab auth login
+# 解决：配置 Token
+git config --global gitlab.token "glpat-xxxxxxxxxxxxxxxx"
+# 或
+export GITLAB_TOKEN="glpat-xxxxxxxxxxxxxxxx"
+```
+
+### 命名不合规
+
+```
+用户输入：创建 issue：修复 #bug <紧急>
+
+❌ 标题包含特殊字符：# < >
+请提供合规的 Issue 标题（禁止使用 < > : " / \ | ? * # % { } [ ] 等字符）
 ```
 
 ### 分支已存在
 
 ```bash
-$ git push -u origin feature/123-user-login
-! [remote rejected] feature/123-user-login -> feature/123-user-login (branch already exists)
+# API 返回分支已存在
+{"message":"Branch already exists"}
 
 # 解决
 # 方案1：切换到已存在的分支
-git checkout feature/123-user-login
+git checkout 421-用户登录功能
 
 # 方案2：使用新分支名
-git checkout -b feature/123-user-login-v2
+git checkout -b 421-用户登录功能-v2
 ```
 
 ### MR 冲突
 
 ```bash
-$ glab mr merge 45
-Error: merge conflict detected
+# API 返回冲突
+{"message":"Branch cannot be merged"}
 
 # 解决
 # 1. 拉取目标分支最新代码
@@ -641,13 +556,15 @@ git checkout main
 git pull
 
 # 2. 切换到开发分支并 rebase
-git checkout feature/123-user-login
+git checkout 421-用户登录功能
 git rebase main
 
 # 3. 解决冲突后推送
-git push -f origin feature/123-user-login
+git push -f origin 421-用户登录功能
 
 # 4. 再次尝试合并
-glab mr merge 45
+curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"should_remove_source_branch": true}' \
+  "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/45/merge"
 ```
 

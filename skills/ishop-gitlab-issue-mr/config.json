@@ -1,49 +1,49 @@
 {
   "name": "ishop-gitlab-issue-mr",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "iShop GitLab 开发工作流管理。当用户说'提个issue'、'建个MR'、'开个分支'、'我要开发XX'、'这个bug我来修'、'帮我提交一下合并请求'、'看看我的issue'、'审核通过了合一下'、'新功能要做'等任何 GitLab Issue/MR/分支操作时触发",
   "author": "Qoder",
   "category": "git_workflow",
   "tags": ["gitlab", "issue", "merge-request", "branch", "workflow", "code-review"],
-  "dependencies": ["git", "glab"],
-  "dependency_check": {
-    "glab": {
-      "check_command": "which glab && glab version",
-      "install": {
-        "macos": "brew install glab",
-        "linux": "curl -sL https://raw.githubusercontent.com/profclems/glab/trunk/scripts/install.sh | sh"
-      }
-    }
-  },
-  "intent_recognition": {
-    "rule": "用户说的内容 = 任务名称，不是指令。不要解析其中的数字为 Bug/Issue 编号，不要试图解决具体技术问题",
-    "examples": {
-      "我要修改9745的bug": {
-        "task_name": "修改9745的bug",
-        "wrong_interpretation": "查找编号9745的Bug"
-      },
-      "修复登录崩溃": {
-        "task_name": "修复登录崩溃",
-        "wrong_interpretation": "帮用户调试代码"
-      }
-    }
+  "dependencies": ["git", "curl"],
+  "execution_rules": {
+    "curl_default_execute": true,
+    "curl_description": "所有 curl API 调用默认直接执行，不询问用户许可",
+    "auto_infer_issue_type": true,
+    "auto_assign_current_user": true,
+    "auto_create_draft_mr": true,
+    "default_target_branch": "main"
   },
   "interaction": {
     "tool": "ask_user_question",
-    "rule": "所有需要用户确认的操作，必须使用 ask_user_question 工具让用户选择，禁止静默执行"
+    "rule": "仅在必要时询问用户：选择项目、命名不合规重新输入、合并/删除等不可逆操作确认",
+    "ask_scenarios": ["project_selection", "naming_invalid", "merge_confirm", "delete_confirm"],
+    "auto_scenarios": ["issue_type_infer", "assignee_self", "label_auto", "branch_name", "draft_mr_create", "curl_execute"]
+  },
+  "naming_validation": {
+    "issue_title": {
+      "forbidden_chars": ["<", ">", ":", "\"", "/", "\\", "|", "?", "*", "#", "%", "{", "}", "[", "]"],
+      "no_leading_trailing_spaces": true,
+      "no_emoji": true
+    },
+    "branch_name": {
+      "forbidden_chars": [" ", "~", "^", ":", "?", "*", "[", "\\"],
+      "forbidden_patterns": ["..", "@{"],
+      "no_trailing_dot": true,
+      "no_trailing_lock": true
+    },
+    "on_invalid": "提示用户重新提供合规名称"
+  },
+  "issue_type_inference": {
+    "bug_keywords": ["bug", "修复", "崩溃", "报错", "异常", "闪退", "失败", "fix", "crash", "error"],
+    "improvement_keywords": ["优化", "改进", "性能", "重构", "调整", "optimize", "refactor", "improve"],
+    "default_type": "feature"
   },
   "gitlab": {
     "url": "https://git.graspishop.com/",
     "token_config": {
-      "check_priority": ["glab_auth", "git_config", "env_var"],
+      "check_priority": ["git_config", "env_var"],
       "methods": [
-        {
-          "name": "glab_auth",
-          "label": "🔑 glab auth 登录",
-          "description": "通过 glab CLI 交互式登录",
-          "check_command": "glab auth status",
-          "set_command": "glab auth login"
-        },
         {
           "name": "git_config",
           "label": "🔧 Git 全局配置（推荐）",
@@ -57,11 +57,6 @@
           "description": "临时配置，仅当前终端有效",
           "check_command": "echo $GITLAB_TOKEN",
           "set_command": "export GITLAB_TOKEN=\"<token>\""
-        },
-        {
-          "name": "create_new",
-          "label": "❓ 我还没有 Token",
-          "description": "引导创建 Token"
         }
       ],
       "create_url": "https://git.graspishop.com/-/profile/personal_access_tokens",
@@ -69,63 +64,41 @@
     }
   },
   "project_detection": {
-    "method": "git_remote",
-    "check_commands": [
-      "git rev-parse --is-inside-work-tree",
-      "git rev-parse --show-toplevel",
-      "git remote get-url origin"
+    "method": "context_driven",
+    "description": "优先从对话上下文推断项目，否则让用户从项目列表选择。不检测当前工作目录",
+    "priority": [
+      "1. 检查用户对话上下文中是否提及项目名称",
+      "2. 调用 API 获取项目列表让用户选择"
     ],
-    "url_pattern": "git@git.graspishop.com:{group}/{project}.git",
-    "project_list_command": "glab api projects --per-page 100 -f 'membership=true' -f 'simple=true' --jq '.[] | \"\\(.path_with_namespace)|\\(.name)\"'",
-    "scenarios": {
-      "in_project": {
-        "condition": "当前目录在 iShop GitLab 项目内",
-        "options": [
-          {"label": "✅ 是，继续操作", "description": "使用当前项目"},
-          {"label": "🔄 切换到其他项目", "description": "列出所有有权限的项目"}
-        ]
-      },
-      "not_in_git": {
-        "condition": "当前目录不在 Git 仓库内",
-        "action": "列出用户有权限的所有项目让用户选择"
-      },
-      "not_ishop_gitlab": {
-        "condition": "当前项目不在 iShop GitLab",
-        "options": [
-          {"label": "🔄 切换到其他项目", "description": "列出 iShop GitLab 上的项目"},
-          {"label": "✏️ 手动输入项目路径", "description": "直接输入项目路径（如 igroup/ishop）"},
-          {"label": "❌ 取消操作", "description": ""}
-        ]
-      }
-    }
+    "project_list_api": "/api/v4/projects?membership=true&simple=true&per_page=100",
+    "url_pattern": "https://git.graspishop.com/api/v4/projects/{url_encoded_path}"
   },
   "selection_options": {
-    "issue_type": [
-      {"label": "🚀 feature", "description": "新功能开发"},
-      {"label": "🐛 bug", "description": "Bug 修复"},
-      {"label": "✨ improvement", "description": "优化改进"}
-    ],
-    "title_confirm": [
-      {"label": "✅ 使用建议标题", "description": "[显示建议的标题]"},
-      {"label": "✏️ 修改标题", "description": "手动输入新标题"}
-    ],
-    "branch_name_confirm": [
-      {"label": "✅ 使用建议名称", "description": "[显示建议的分支名]"},
-      {"label": "✏️ 修改分支名", "description": "手动输入新名称"}
-    ],
-    "create_draft_mr": [
-      {"label": "✅ 创建 Draft MR", "description": "创建并关联分支"},
-      {"label": "⏸️ 暂不创建 MR", "description": "仅创建 Issue"}
-    ],
-    "mark_ready": [
-      {"label": "✅ 转为正式 MR", "description": "并请求审核"},
-      {"label": "⏸️ 保持 Draft 状态", "description": "继续开发"}
-    ],
+    "issue_type": {
+      "description": "自动推断，不询问用户",
+      "inference_rule": "根据任务名称关键词自动推断，bug类/improvement类/默认feature"
+    },
+    "assignee": {
+      "description": "自动指派给当前登录用户",
+      "api": "/api/v4/user"
+    },
+    "title_confirm": {
+      "description": "自动使用用户提供的名称，仅命名不合规时询问"
+    },
+    "branch_name_confirm": {
+      "description": "自动生成分支名，仅命名不合规时询问"
+    },
+    "create_draft_mr": {
+      "description": "自动创建 Draft MR，不询问用户"
+    },
+    "mark_ready": {
+      "description": "自动执行，不询问用户"
+    },
     "merge_confirm": [
       {"label": "✅ 合并 MR", "description": "合并后自动删除分支、关闭 Issue"},
       {"label": "⏸️ 暂不合并", "description": "等待进一步确认"}
     ],
-    "no_assignee": {"label": "👤 不指派", "description": "稍后指定"},
+    "no_assignee": {"description": "默认指派给当前用户，不提供不指派选项"},
     "no_reviewer": {"label": "👤 不指定", "description": "稍后指定"},
     "skip_label": {"label": "⏭️ 跳过", "description": "不添加标签"}
   },
@@ -135,45 +108,70 @@
       "steps": [
         {
           "step": 1,
-          "name": "create_issue",
-          "description": "创建 Issue 记录需求/问题",
-          "commands": ["glab issue create"]
+          "name": "get_current_user",
+          "description": "获取当前登录用户信息",
+          "auto": true,
+          "api": "/api/v4/user"
         },
         {
           "step": 2,
-          "name": "create_draft_mr",
-          "description": "创建 Draft MR 并自动创建关联分支",
-          "commands": ["glab mr create --draft --create-source-branch"]
+          "name": "validate_naming",
+          "description": "校验命名合规性",
+          "auto": true,
+          "ask_on_invalid": true
         },
         {
           "step": 3,
+          "name": "infer_issue_type",
+          "description": "根据名称关键词自动推断 Issue 类型",
+          "auto": true
+        },
+        {
+          "step": 4,
+          "name": "create_issue",
+          "description": "创建 Issue，自动指派给当前用户",
+          "auto": true,
+          "api": "POST /api/v4/projects/:id/issues"
+        },
+        {
+          "step": 5,
+          "name": "create_branch",
+          "description": "创建关联分支",
+          "auto": true,
+          "api": "POST /api/v4/projects/:id/repository/branches"
+        },
+        {
+          "step": 6,
+          "name": "create_draft_mr",
+          "description": "创建 Draft MR 并关联 Issue",
+          "auto": true,
+          "api": "POST /api/v4/projects/:id/merge_requests"
+        },
+        {
+          "step": 7,
           "name": "checkout_branch",
           "description": "本地拉取关联分支开始开发",
           "commands": ["git fetch", "git checkout"]
         },
         {
-          "step": 4,
+          "step": 8,
           "name": "develop_and_push",
           "description": "开发并推送代码",
           "commands": ["git add", "git commit", "git push"]
         },
         {
-          "step": 5,
+          "step": 9,
           "name": "mark_ready",
-          "description": "Draft MR 转正式状态，请求审核",
-          "commands": ["glab mr ready", "通知审核人"]
+          "description": "Draft MR 转正式状态",
+          "auto": true,
+          "api": "PUT /api/v4/projects/:id/merge_requests/:mr_id"
         },
         {
-          "step": 6,
+          "step": 10,
           "name": "merge",
-          "description": "审核通过后合并 MR",
-          "commands": ["glab mr merge --delete-branch"]
-        },
-        {
-          "step": 7,
-          "name": "auto_close",
-          "description": "自动关闭关联 Issue/MR/删除分支",
-          "commands": []
+          "description": "审核通过后合并 MR（需用户确认）",
+          "auto": false,
+          "api": "PUT /api/v4/projects/:id/merge_requests/:mr_id/merge"
         }
       ]
     }

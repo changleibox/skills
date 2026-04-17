@@ -27,7 +27,19 @@ git branch --no-merged
 **🔄 询问用户（对应 AS 的 New Branch 对话框）：**
 > 请提供新分支信息：
 > - **分支名称**：（如 `feature/xxx`、`bugfix/xxx`）
-> - **基于哪个分支/提交创建**？（默认：当前 HEAD）
+> - **基于哪个分支创建**？（默认：当前 HEAD）
+>
+> 先执行 `git branch -a` 获取分支列表，以编号形式展示：
+>
+> | # | 分支 | 说明 |
+> |---|------|------|
+> | 1 | main | 本地 |
+> | 2 | develop | 本地 |
+> | 3 | HEAD | 当前提交 |
+> | ... | [agent 执行 `git branch -a` 动态填充] | |
+>
+> 请选择分支编号（默认：3，即当前 HEAD）：
+>
 > - **是否立即切换到新分支**？（默认：是）
 
 ```bash
@@ -59,6 +71,21 @@ git switch -c <local-name> origin/<remote-name>
 | `refactor/` | 重构 | `refactor/database-layer` |
 
 ## 切换分支
+
+**🔄 询问用户（对应 AS 的 Branches Popup 选择分支）：**
+
+先执行 `git branch -a` 获取分支列表，然后以编号形式展示：
+
+> 切换到哪个分支？
+> | # | 分支 | 说明 |
+> |---|------|------|
+> | 1 | main | 本地 |
+> | 2 | develop | 本地 |
+> | 3 | feature/user-login | 本地 |
+> | 4 | remotes/origin/feature/xxx | 远程（将自动创建本地跟踪分支） |
+> | ... | [agent 执行 `git branch -a` 动态填充] | |
+>
+> 请选择分支编号：
 
 ```bash
 # 切换到已有分支
@@ -224,6 +251,20 @@ git pull --rebase origin <branch>
 ```
 
 ## 比较分支
+
+**🔄 询问用户（对应 AS 的 Compare Branches 对话框）：**
+
+先执行 `git branch -a` 获取分支列表，然后以编号形式展示：
+
+> 选择要对比的分支（当前分支：`<current-branch>`）：
+> | # | 分支 |
+> |---|------|
+> | 1 | main |
+> | 2 | develop |
+> | 3 | feature/xxx |
+> | ... | [agent 执行 `git branch -a` 动态填充] |
+>
+> 请选择要对比的分支编号：
 
 ```bash
 # 两个分支的差异文件列表
