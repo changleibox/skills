@@ -72,32 +72,16 @@ git log -p -<N>
 Android Studio Git Log 窗口左侧有强大的筛选面板，以下是 agent 辅助的等价实现：
 
 **🔄 询问用户（对应 AS 的 Log Filter Panel）：**
-> 🔍 日志筛选条件（可组合）：
-> | # | 筛选项 | 当前值 |
-> |---|---------|--------|
-> | 1 | **分支** | 全部 |
-> | 2 | **作者** | 全部 |
-> | 3 | **日期范围** | 不限 |
-> | 4 | **关键词** | 无 |
-> | 5 | **文件路径** | 全部 |
-> | 6 | **代码内容** | 无 |
-> | 7 | **执行查询** — 用当前条件搜索
-> | 8 | **重置筛选** — 清空所有条件
->
-> 请选择要设置的筛选项编号：
 
-用户选择筛选项后，根据具体筛选项提供进一步选择：
+通过 `ask_user_question` 提供可点击的筛选项选项（question='🔍 日志筛选条件'）：
+> - **按分支筛选** — 选择指定分支
+> - **按作者筛选** — 指定作者
+> - **按日期范围** — 指定时间段
+> - **按关键词** — 搜索提交信息
+> - **按文件路径** — 指定文件
+> - **按代码内容** — 搜索代码变更
 
-**选择筛选项 1（分支）时，先执行 `git branch -a` 然后以编号形式展示：**
-> 选择要筛选的分支：
-> | # | 分支 |
-> |---|------|
-> | 1 | main |
-> | 2 | develop |
-> | 3 | feature/xxx |
-> | ... | [agent 执行 `git branch -a` 动态填充] |
->
-> 请选择分支编号：
+用户选择「按分支筛选」时，先执行 `git branch -a`，再通过 `ask_user_question` 提供可点击的分支选项。
 
 agent 根据筛选条件组合生成命令：
 
@@ -169,19 +153,16 @@ git show --stat <commit-hash>
 在 Android Studio 的 Git Log 中右键点击某个提交，会出现以下菜单：
 
 **🔄 询问用户（对应 AS Log 右键菜单）：**
-> 选中提交：`<commit-hash>` - `<commit-message>`
-> 可执行的操作：
-> 1. **Copy Revision Number** — 复制提交哈希
-> 2. **Create Tag...** — 基于此提交创建标签
-> 3. **New Branch...** — 基于此提交创建分支
-> 4. **Checkout Revision** — 检出此提交（进入 Detached HEAD）
-> 5. **Reset Current Branch to Here...** — 重置当前分支到此提交
-> 6. **Revert Commit** — 撤销此提交的变更
-> 7. **Cherry-Pick** — 拣选此提交到当前分支
-> 8. **Interactively Rebase from Here** — 从此提交开始交互式变基
-> 9. **Select for Compare** — 选择为对比基准
-> 10. **Show Diff with Working Tree** — 与工作目录对比
-> 11. **取消**
+
+通过 `ask_user_question` 提供可点击的操作选项（question='提交 <commit-hash>: <commit-message>，要执行什么操作？'）：
+> - **Copy Revision Number** — 复制提交哈希
+> - **Create Tag...** — 基于此提交创建标签
+> - **New Branch...** — 基于此提交创建分支
+> - **Checkout Revision** — 检出此提交（进入 Detached HEAD）
+> - **Reset Current Branch to Here...** — 重置当前分支到此提交
+> - **Revert Commit** — 撤销此提交的变更
+> - **Cherry-Pick** — 拣选此提交到当前分支
+> - **Interactively Rebase from Here** — 从此提交开始交互式变基
 
 ```bash
 # 1. Copy Revision Number
@@ -216,12 +197,10 @@ git rebase -i <commit-hash>^
 
 **Checkout Revision 警告对话框（对应 AS 的 Detached HEAD 警告）：**
 
-> ⚠️ **即将进入 Detached HEAD 状态！**
-> 你正在检出提交 `<commit-hash>`，而不是分支。
-> 在此状态下的提交可能会丢失，除非创建新分支。
-> 1. **继续 Checkout** — 我了解风险
-> 2. **Checkout 并创建新分支** — 基于此提交创建分支（推荐）
-> 3. **取消**
+通过 `ask_user_question` 提供可点击选项（question='⚠️ 即将进入 Detached HEAD 状态！在此状态下的提交可能会丢失。'）：
+> - **继续 Checkout** — 我了解风险
+> - **Checkout 并创建新分支**（推荐）— 基于此提交创建分支
+> - **取消**
 
 ```bash
 # 继续 Checkout
@@ -239,23 +218,13 @@ Android Studio 的 "Annotate with Git Blame" 等价：
 
 **🔄 询问用户（选择文件进行 Blame）：**
 
-先执行 `git status --short` 获取变更文件列表，以编号形式展示：
+先执行 `git ls-files` 或 `git status --short` 获取文件列表，通过 `ask_user_question` 提供可点击的文件选项（label=文件名，description=状态）。
 
-> 选择要查看 blame 的文件：
-> | # | 状态 | 文件 |
-> |---|------|------|
-> | 1 | M | src/pages/home.dart |
-> | 2 | M | src/models/user.dart |
-> | 3 | A | src/pages/login.dart |
-> | ... | [agent 执行 `git status` 或列出仓库文件动态填充] | |
->
-> 请选择文件编号：
->
-> - **查看方式**：
->   1. **标准 blame** — 显示每行最后修改者
->   2. **忽略空白** — `git blame -w`
->   3. **检测行移动** — `git blame -M`（文件内）
->   4. **检测跨文件复制** — `git blame -C`
+用户选择文件后，再通过 `ask_user_question` 提供 Blame 查看方式选项：
+> - **标准 blame** — 显示每行最后修改者
+> - **忽略空白** — `git blame -w`
+> - **检测行移动** — `git blame -M`（文件内）
+> - **检测跨文件复制** — `git blame -C`
 
 ```bash
 # 查看文件每一行的最后修改者
@@ -300,14 +269,13 @@ git blame <commit-hash>^ -L <line>,<line> <file>
 对应 AS 的 **Blame 视图中点击注解行 → Show Diff / Annotate Previous Revision**：
 
 **🔄 询问用户（对应 AS 的 Annotate Previous Revision 操作）：**
-> Blame 追溯：行 `<line>` 最后由提交 `<commit-hash>` 修改。
-> 进一步操作：
-> 1. **Annotate Previous Revision** — 查看此提交之前的 Blame（递归追溯）
-> 2. **Show Diff** — 查看此提交的完整变更
-> 3. **Copy Revision Number** — 复制提交哈希
-> 4. **Annotate Revision** — 查看此提交时的完整 Blame
-> 5. **返回当前版本 Blame**
-> 6. **取消**
+
+通过 `ask_user_question` 提供可点击的进一步操作选项（question='Blame 追溯：行 <line> 最后由提交 <commit-hash> 修改'）：
+> - **Annotate Previous Revision** — 查看此提交之前的 Blame（递归追溯）
+> - **Show Diff** — 查看此提交的完整变更
+> - **Copy Revision Number** — 复制提交哈希
+> - **Annotate Revision** — 查看此提交时的完整 Blame
+> - **返回当前版本 Blame**
 
 ```bash
 # Annotate Previous Revision — 查看此行在上一版本的 blame
@@ -350,14 +318,12 @@ git diff HEAD
 Android Studio 支持右键提交 **Select for Compare**，再右键另一提交 **Compare with Selected**，以下是 agent 辅助的等价实现：
 
 **🔄 询问用户（对应 AS 的 Select for Compare / Compare with Selected）：**
-> 对比两个提交的差异：
-> - **提交1**：（输入 hash、分支名或 `HEAD~N`）
-> - **提交2**：（输入 hash、分支名或 `HEAD`）
-> - **查看方式**：
->   1. **文件列表** — 仅查看变更的文件
->   2. **统计概览** — 各文件增删行数
->   3. **完整 Diff** — 查看所有变更详情
->   4. **指定文件的 Diff** — 只看某个文件
+
+先询问用户输入两个提交（hash、分支名或 `HEAD~N`），然后通过 `ask_user_question` 提供查看方式选项：
+> - **文件列表** — 仅查看变更的文件
+> - **统计概览** — 各文件增删行数
+> - **完整 Diff** — 查看所有变更详情
+> - **指定文件的 Diff** — 只看某个文件
 
 ```bash
 # 两个提交之间的变更文件列表
@@ -430,22 +396,12 @@ Android Studio 支持右键文件 **Git → Compare with Branch**，或在 Diff 
 
 **🔄 询问用户（对应 AS 的 Compare with Branch 对话框）：**
 
-先执行 `git branch -a` 获取分支列表，然后以编号形式展示：
+先执行 `git branch -a` 获取分支列表，通过 `ask_user_question` 提供可点击的分支选项（question='与哪个分支对比当前分支的差异？'，label=分支名）。
 
-> 与哪个分支对比当前分支的差异？
-> | # | 分支 |
-> |---|------|
-> | 1 | main |
-> | 2 | develop |
-> | 3 | feature/xxx |
-> | ... | [agent 执行 `git branch -a` 动态填充] |
->
-> 请选择分支编号：
->
-> 选择分支后，对比范围：
->   1. **完整分支对比** — 所有文件差异
->   2. **指定文件对比** — 仅对比某个文件
->   3. **取消**
+用户选择分支后，再通过 `ask_user_question` 提供对比范围选项：
+> - **完整分支对比** — 所有文件差异
+> - **指定文件对比** — 仅对比某个文件
+> - **取消**
 
 ```bash
 # 当前分支与目标分支的完整差异
@@ -472,17 +428,7 @@ git diff origin/<branch>
 
 **🔄 询问用户（对应 AS 的 Tags 列表）：**
 
-先执行 `git tag --sort=-creatordate` 获取标签列表，以编号形式展示：
-
-> 标签列表：
-> | # | 标签 | 指向提交 | 说明 |
-> |---|------|----------|------|
-> | 1 | v1.2.0 | abc1234 | 最新版本 |
-> | 2 | v1.1.0 | def5678 | |
-> | 3 | v1.0.0 | ghi9012 | 初始版本 |
-> | ... | [agent 执行 `git tag` 动态填充] | | |
->
-> 请选择要对哪个标签进行操作（输入编号，或 0 取消）：
+先执行 `git tag --sort=-creatordate` 获取标签列表，通过 `ask_user_question` 提供可点击的标签选项（label=标签名，description=指向提交+说明），用户点击即可选择要操作的标签。
 
 ```bash
 # 列出所有标签
@@ -501,25 +447,12 @@ git tag --sort=-creatordate
 ### 创建标签
 
 **🔄 询问用户（对应 AS 的 New Tag 对话框）：**
-> 创建新标签：
-> - **标签名称**：（如 `v1.0.0`）
-> - **基于哪个提交**？
->
-> 先执行 `git log --oneline -15` 获取最近提交，以编号形式展示：
->
-> | # | 提交 | 信息 |
-> |---|------|------|
-> | 1 | `abc1234` | feat: 用户登录 |
-> | 2 | `def5678` | fix: 修复样式 |
-> | ... | [agent 执行 `git log --oneline -15` 动态填充] | |
->
-> 请选择提交编号（默认：1，即当前 HEAD）：
->
-> - **标签类型**：
->   1. **附注标签**（推荐）— 含作者/日期/信息
->   2. **轻量标签** — 仅名称指向提交
-> - **标签消息**：（附注标签需要）
-> - **是否立即推送到远程**？（默认：是）
+
+先询问标签名称（自由文本输入），然后执行 `git log --oneline -15` 获取最近提交，通过 `ask_user_question` 提供可点击的提交选项（label=提交信息，description=hash），默认选项为当前 HEAD。
+
+再通过 `ask_user_question` 提供标签类型选项：
+> - **附注标签**（推荐）— 含作者/日期/信息
+> - **轻量标签** — 仅名称指向提交
 
 ```bash
 # 轻量标签（仅名称指向提交）
@@ -549,11 +482,11 @@ git push --follow-tags
 ### 删除标签
 
 **🔄 询问用户（对应 AS 的 Delete Tag 确认）：**
-> 确认删除标签 `<tag-name>`？
-> - 标签指向：`<commit>` (<date>)
-> 1. **删除本地标签** — 仅删除本地
-> 2. **删除本地+远程标签** — 同步删除远程
-> 3. **取消**
+
+通过 `ask_user_question` 提供可点击选项（question='确认删除标签 <tag-name>？'）：
+> - **删除本地标签** — 仅删除本地
+> - **删除本地+远程标签** — 同步删除远程
+> - **取消**
 
 ```bash
 # 删除本地标签
@@ -567,12 +500,12 @@ git push origin :refs/tags/<tag-name>
 
 ### 基于标签操作
 
-**🔄 切换到标签时询问用户（对应 AS 的 Checkout Tag 警告）：**
-> ⚠️ 切换到标签 `<tag-name>` 会进入 **Detached HEAD** 状态。
-> 在此状态下的提交不属于任何分支，可能被丢失。
-> 1. **基于标签创建新分支**（推荐）— 在新分支上工作
-> 2. **仅查看** — 进入 Detached HEAD，仅浏览代码
-> 3. **取消**
+**🔄 切换到标签时通过 `ask_user_question` 询问用户（对应 AS 的 Checkout Tag 警告）：**
+
+提供可点击选项（question='⚠️ 切换到标签 <tag-name> 会进入 Detached HEAD 状态'）：
+> - **基于标签创建新分支**（推荐）— 在新分支上工作
+> - **仅查看** — 进入 Detached HEAD，仅浏览代码
+> - **取消**
 
 ```bash
 # 切换到标签（进入 detached HEAD）
