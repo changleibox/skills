@@ -1,0 +1,93 @@
+{
+  "name": "service-bill",
+  "version": "1.0.0",
+  "description": "业务类单据生成工具，基于现有代码架构生成标准化的销售、进货、调拨等物流类单据组件",
+  "author": "Qoder",
+  "category": "code_generation",
+  "tags": ["flutter", "dart", "bill", "document", "code-generation", "ancestry"],
+  "dependencies": ["flutter", "dart"],
+  "parameters": {
+    "bill_type": {
+      "type": "string",
+      "required": true,
+      "description": "单据类型，如 sales_bill, purchase_bill, sales_order 等"
+    },
+    "bill_name": {
+      "type": "string",
+      "required": true,
+      "description": "单据中文名称，如 销售单、采购单"
+    },
+    "category": {
+      "type": "string",
+      "required": true,
+      "enum": ["sales", "purchase", "transfer", "retail"],
+      "description": "单据分类：sales（销售类）、purchase（进货类）、transfer（调拨类）、retail（零售类）"
+    },
+    "is_order": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "是否为订单类型（订单有特定的命名规范）"
+    },
+    "support_ai": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "是否支持 AI 开单功能"
+    },
+    "source_order_type": {
+      "type": "string",
+      "required": false,
+      "description": "源单据类型，用于从订单生成单据的场景"
+    }
+  },
+  "file_structure": {
+    "model": {
+      "list": "packages/ancestry/lib/src/models/bills/lists/{bill_type}_bills_model.dart",
+      "edit": "packages/ancestry/lib/src/models/bills/edits/{bill_type}_bill_model.dart",
+      "detail": "packages/ancestry/lib/src/models/bills/details/{bill_type}_bill_detail_model.dart"
+    },
+    "presenter": {
+      "list": "packages/ancestry/lib/src/presenters/bills/lists/{bill_type}_bills_presenter.dart",
+      "edit": "packages/ancestry/lib/src/presenters/bills/edits/{bill_type}_bill_presenter.dart",
+      "detail": "packages/ancestry/lib/src/presenters/bills/details/{bill_type}_bill_detail_presenter.dart"
+    },
+    "page": {
+      "list": "packages/ancestry/lib/src/pages/bills/lists/{bill_type}_bills_page.dart",
+      "edit": "packages/ancestry/lib/src/pages/bills/edits/{bill_type}_bill_page.dart",
+      "detail": "packages/ancestry/lib/src/pages/bills/details/{bill_type}_bill_detail_page.dart",
+      "cell": "packages/ancestry/lib/src/pages/widgets/bills/lists/{bill_type}_bills_cell.dart"
+    },
+    "entry": "packages/ancestry/lib/src/entries/{bill_type}.dart"
+  },
+  "naming_conventions": {
+    "bill_entity": "{Type}Bill 或 {Type}Order",
+    "list_page": "{Type}BillsPage 或 {Type}OrdersPage（复数形式）",
+    "edit_page": "{Type}BillPage 或 {Type}OrderPage（单数形式）",
+    "detail_page": "{Type}BillDetailPage 或 {Type}OrderDetailPage",
+    "list_model": "{Type}BillsModel 或 {Type}OrdersModel",
+    "edit_model": "{Type}BillModel 或 {Type}OrderModel",
+    "list_presenter": "{Type}BillsPresenter 或 {Type}OrdersPresenter",
+    "edit_presenter": "{Type}BillPresenter 或 {Type}OrderPresenter"
+  },
+  "base_classes": {
+    "sales": {
+      "list_model": "BillsModel",
+      "edit_model": "EditSalesBillModel",
+      "edit_mixin": "EditSalesBillModelMixin"
+    },
+    "purchase": {
+      "list_model": "BillsModel",
+      "edit_model": "EditPurchasesBillModel",
+      "edit_mixin": "EditPurchasesBillModelMixin"
+    },
+    "transfer": {
+      "list_model": "BillsModel",
+      "edit_model": "EditBillModel"
+    },
+    "retail": {
+      "list_model": "BillsModel",
+      "edit_model": "EditSalesBillModel"
+    }
+  }
+}

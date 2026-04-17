@@ -1,0 +1,65 @@
+{
+  "name": "wbs-split",
+  "version": "4.1.1",
+  "description": "智能网页需求WBS拆分工具 - 通过 Qoder AI 协同读取网页内容，支持蓝湖 MCP 深度集成，零额外依赖，强制任务粒度控制，保持原始文档命名",
+  "author": "Qoder",
+  "category": "project_management",
+  "tags": ["wbs", "需求拆分", "AI协同", "蓝湖集成", "零依赖", "任务粒度控制"],
+  "dependencies": ["openpyxl"],
+  "parameters": {
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "需求页面URL（用于识别页面类型：蓝湖/其他）"
+    },
+    "data_file": {
+      "type": "string",
+      "required": false,
+      "description": "包含表格数据的JSON文件路径（由 AI 生成）"
+    },
+    "output": {
+      "type": "string",
+      "required": false,
+      "description": "输出Excel文件路径（默认：./需求_WBS.xlsx）"
+    },
+    "target_platform": {
+      "type": "string",
+      "required": false,
+      "default": "app",
+      "description": "目标平台：app（仅APP端）、pc（仅PC端）、all（全部平台）。默认：app"
+    },
+    "max_task_hours": {
+      "type": "number",
+      "required": false,
+      "default": 3,
+      "description": "单个任务的最大工时（小时）。默认：3小时，用于控制任务拆分粒度"
+    },
+    "keep_modules": {
+      "type": "string",
+      "required": false,
+      "description": "要保留的模块列表，用逗号分隔"
+    },
+    "exclude_modules": {
+      "type": "string",
+      "required": false,
+      "description": "要排除的模块列表，用逗号分隔"
+    },
+    "demand_map": {
+      "type": "string",
+      "required": false,
+      "description": "模块到需求名称的映射，格式：模块1:需求1,模块2:需求2"
+    }
+  },
+  "constraints": {
+    "task_granularity": {
+      "enabled": true,
+      "max_hours": 3,
+      "description": "强制要求：每个任务的预估工时不得超过max_task_hours设定的值，超过必须拆分"
+    },
+    "platform_filter": {
+      "enabled": true,
+      "default": "app",
+      "description": "强制要求：默认只生成APP端需求的WBS任务，除非明确指定其他平台"
+    }
+  }
+}

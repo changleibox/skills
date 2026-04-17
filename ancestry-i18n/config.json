@@ -1,0 +1,77 @@
+{
+  "project": {
+    "name": "ancestry",
+    "root_path": "/Volumes/Samsung/AndroidStudioWorkspace/ishops/packages/ancestry",
+    "source_directory": "lib/src/pages",
+    "l10n_directory": "lib/src/l10n",
+    "strings_accessor": "S.strings"
+  },
+  "processing": {
+    "batch_size": 5,
+    "max_key_length": 50,
+    "auto_translate": true,
+    "backup_before_processing": true,
+    "validate_after_processing": true
+  },
+  "exclusions": {
+    "file_patterns": [
+      "*.g.dart",
+      "*_test.dart",
+      "l10n/*"
+    ],
+    "directory_patterns": [
+      "test/",
+      "build/",
+      ".dart_tool/"
+    ],
+    "string_patterns": [
+      "^\\d+$",
+      "^[\\W]+$",
+      "^[A-Z][A-Z0-9_]*$"
+    ]
+  },
+  "key_naming": {
+    "strategy": "contextual",
+    "prefix_mapping": {
+      "account": ["账户", "账号", "account", "login", "register"],
+      "bill": ["单据", "订单", "账单", "bill", "order"],
+      "customer": ["客户", "顾客", "customer", "client"],
+      "product": ["商品", "产品", "货物", "product", "goods"],
+      "report": ["报表", "报告", "统计", "report", "statistics"],
+      "setting": ["设置", "配置", "setting", "config"],
+      "message": ["消息", "通知", "提醒", "message", "notification"],
+      "error": ["错误", "失败", "异常", "error", "fail"],
+      "success": ["成功", "完成", "确认", "success", "complete"],
+      "validation": ["验证", "校验", "检查", "validate", "check"],
+      "navigation": ["导航", "菜单", "页面", "nav", "menu", "page"]
+    },
+    "reserved_keywords": [
+      "abstract", "as", "assert", "async", "await", "break", "case", "catch",
+      "class", "const", "continue", "default", "deferred", "do", "dynamic",
+      "else", "enum", "export", "extends", "external", "factory", "false",
+      "final", "finally", "for", "get", "if", "implements", "import", "in",
+      "is", "library", "native", "new", "null", "operator", "part", "rethrow",
+      "return", "set", "static", "super", "switch", "sync", "this", "throw",
+      "true", "try", "typedef", "var", "void", "while", "with", "yield"
+    ]
+  },
+  "translation": {
+    "service": "google",
+    "target_locales": ["zh", "en"],
+    "fallback_locale": "en",
+    "cache_translations": true
+  },
+  "quality_control": {
+    "compile_check": true,
+    "analysis_check": true,
+    "test_execution": false,
+    "maximum_warnings": 0,
+    "rollback_on_error": true
+  },
+  "progress_tracking": {
+    "save_progress": true,
+    "progress_file": ".i18n_progress.json",
+    "log_changes": true,
+    "change_log_file": ".i18n_changes.log"
+  }
+}
