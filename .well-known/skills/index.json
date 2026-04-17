@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "name": "qoder-skills",
+  "description": "Qoder AI 技能集合",
+  "skills": [
+    {
+      "name": "ancestry-i18n",
+      "path": "ancestry-i18n/SKILL.md",
+      "description": "Ancestry 项目国际化处理工具，自动将中文字符串替换为 S.strings 调用并更新 ARB 文件"
+    },
+    {
+      "name": "commit",
+      "path": "commit/SKILL.md",
+      "description": "Git 提交助手，智能生成符合 Conventional Commits 规范的提交信息，并在提交前进行代码审查和验证"
+    },
+    {
+      "name": "service-bill",
+      "path": "service-bill/SKILL.md",
+      "description": "业务类单据生成工具，基于现有代码架构生成标准化的销售、进货、调拨等物流类单据组件"
+    },
+    {
+      "name": "wbs-split",
+      "path": "wbs-split/SKILL.md",
+      "description": "智能 WBS 拆分工具，通过 AI 协同从网页内容提取表格数据并进行任务拆分"
+    },
+    {
+      "name": "yunxiao-bug-fix",
+      "path": "yunxiao-bug-fix/SKILL.md",
+      "description": "云效 Bug 工作项全生命周期管理，涵盖工作项查询、详情获取、评论提交、状态流转等操作"
+    }
+  ]
+}
