@@ -4,7 +4,7 @@
   "description": "个人技能集合 - 包含 iShop 系列工具（国际化处理、Git提交、单据生成、WBS拆分、云效Bug管理）等开发辅助技能",
   "author": "changlei",
   "license": "MIT",
-  "repository": "https://gitee.com/changleibox/skills",
+  "repository": "https://github.com/changleibox/skills",
   "skills": [
     {
       "name": "ishop-ancestry-i18n",
