@@ -1,6 +1,6 @@
 {
   "name": "ishop-yunxiao-bug-fix",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "云效（阿里云DevOps平台）Bug工作项全生命周期管理技能，涵盖工作项查询、详情获取、评论提交、状态流转等操作流程",
   "author": "Qoder",
   "category": "project_management",
@@ -14,7 +14,10 @@
     "bug列表",
     "有bug吗",
     "我的bug",
-    "查看我的bug"
+    "查看我的bug",
+    "搜索bug",
+    "查找bug",
+    "筛选bug"
   ],
   "parameters": {
     "project_name": {
@@ -91,24 +94,25 @@
       },
       {
         "name": "handle_action",
-        "description": "处理用户选择的操作（修复/转交/无法复现/不是问题/需要更多信息/重复/延期）"
+        "description": "处理用户选择的操作（修复/转交/无法复现/不是问题/需要更多信息/重复/延期）",
+        "tools": ["mcp_RAM_search_organization_members"]
       },
       {
         "name": "submit_comment",
         "description": "提交修复说明或无法复现说明",
-        "tools": ["mcp_RAM_create_work_item_comment"]
+        "tools": ["mcp_RAM_create_work_item_comment", "mcp_RAM_create_workitem_attachment"]
       },
       {
         "name": "update_status",
         "description": "更新工作项状态",
-        "tools": ["mcp_RAM_update_work_item"]
+        "tools": ["mcp_RAM_update_work_item", "mcp_RAM_get_work_item_workflow"]
       }
     ]
   },
   "comment_templates": {
     "fix_comment": {
       "title": "修复说明",
-      "sections": ["问题原因", "修改描述", "影响范围", "自测结果", "关联提交"],
+      "sections": ["问题原因", "修改描述", "影响范围", "自测结果", "关联提交", "修复版本"],
       "format": "plain_text"
     },
     "transfer_comment": {
