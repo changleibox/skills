@@ -8,7 +8,8 @@
 ```
 
 **核心原则：**
-- curl API 调用默认直接执行，不询问用户
+- API 调用三级优先：glab CLI → Python 脚本 → curl 兜底
+- 所有 API 调用默认直接执行，不询问用户
 - Issue 类型根据名称自动推断
 - 指派人自动为当前登录用户
 - 仅在必要时询问（选择项目、命名不合规、合并/删除等不可逆操作）
@@ -38,23 +39,30 @@
 5. 复制生成的 Token（glpat-xxxxxxxxxxxxxxxx）
 ```
 
-**步骤2：配置 Token（二选一）**
+**步骤2：配置认证（按优先级选择）**
 
 ```bash
-# 方式1：Git 全局配置（推荐）
+# 方式1：glab CLI 认证（最优先）
+glab auth login --hostname git.graspishop.com --token glpat-xxxxxxxxxxxxxxxx
+
+# 方式2：Git 全局配置（Python 脚本和 curl 使用）
 git config --global gitlab.token "glpat-xxxxxxxxxxxxxxxx"
 
-# 方式2：环境变量
+# 方式3：环境变量
 export GITLAB_TOKEN="glpat-xxxxxxxxxxxxxxxx"
 ```
 
 **步骤3：验证配置**
 
 ```bash
-# 获取 Token
-TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
+# glab 方式
+glab auth status --hostname git.graspishop.com
 
-# 测试 API 访问
+# Python 脚本方式
+python3 scripts/gitlab_api.py user
+
+# curl 方式
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 curl -s -H "Private-Token: $TOKEN" https://git.graspishop.com/api/v4/user
 ```
 
@@ -66,7 +74,13 @@ curl -s -H "Private-Token: $TOKEN" https://git.graspishop.com/api/v4/user
 - 如果上下文未提及项目 → 调用 API 列出项目让用户选择
 
 ```bash
-# 列出有权限的项目（has_risk: false，直接执行）
+# glab 方式（优先）
+glab api /projects?membership=true\&per_page=100 --hostname git.graspishop.com
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py projects
+
+# curl 方式（兜底）
 TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects?membership=true&per_page=100" \
   | python3 -c "import sys,json; [print(json.dumps({'path': p['path_with_namespace'], 'name': p['name'], 'desc': p.get('description','')}, ensure_ascii=False)) for p in json.loads(sys.stdin.read())]"
@@ -105,9 +119,16 @@ curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects?m
 ✅ 自动推断 Issue 类型：feature（关键词：开发、功能）
 ```
 
-**步骤2：获取 Token 和当前用户（自动执行）**
+**步骤2：获取当前用户信息（自动执行）**
 
 ```bash
+# glab 方式（优先）
+glab api /user --hostname git.graspishop.com
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py user
+
+# curl 方式（兜底）
 TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq '.id')
 ```
@@ -124,6 +145,18 @@ USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/
 **步骤4：创建 Issue（自动执行）**
 
 ```bash
+# glab 方式（优先）
+glab api /projects/igroup%2Fishop/issues --hostname git.graspishop.com -X POST \
+  -f title="用户登录功能" \
+  -f description="## 描述
+实现用户登录功能，支持账号密码登录和第三方登录。" \
+  -f labels="feature" -f assignee_ids[]=$USER_ID
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py create_issue "igroup/ishop" "用户登录功能" \
+  --desc "## 描述\n实现用户登录功能" --labels "feature" --assignee_id $USER_ID
+
+# curl 方式（兜底）
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
   -d '{"title": "用户登录功能", "description": "## 描述\n实现用户登录功能，支持账号密码登录和第三方登录。\n\n## 验收标准\n- [ ] 账号密码登录\n- [ ] 记住密码功能\n- [ ] 登录状态持久化", "labels": "feature", "assignee_ids": ['$USER_ID']}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/issues"
@@ -140,7 +173,23 @@ curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 **步骤5：创建 Draft MR + 关联分支（自动执行）**
 
 ```bash
-# 自动确定：目标分支 main，源分支 421-用户登录功能
+# glab 方式（优先）
+glab api /projects/igroup%2Fishop/merge_requests --hostname git.graspishop.com -X POST \
+  -f source_branch="421-用户登录功能" -f target_branch="main" \
+  -f title='Draft: Resolve "用户登录功能"' \
+  -f description="## 变更概述
+🚧 开发中...
+
+Closes #421" \
+  -f assignee_id=$USER_ID -f remove_source_branch=true
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py create_mr "igroup/ishop" "421-用户登录功能" \
+  'Draft: Resolve "用户登录功能"' \
+  --desc "## 变更概述\n🚧 开发中...\n\nCloses #421" \
+  --assignee_id $USER_ID
+
+# curl 方式（兜底）
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
   -d '{"source_branch": "421-用户登录功能", "target_branch": "main", "title": "Draft: Resolve \"用户登录功能\"", "description": "## 变更概述\n🚧 开发中...\n\n## 关联 Issue\nCloses #421", "assignee_id": '$USER_ID', "remove_source_branch": true}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests"
@@ -230,19 +279,46 @@ curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 **步骤2：创建 Issue（自动执行）**
 
 ```bash
+# glab 方式（优先）
+glab api /projects/igroup%2Fishop/issues --hostname git.graspishop.com -X POST \
+  -f title="登录页面输入特殊字符时崩溃" \
+  -f description="## 问题描述
+当用户在登录页面输入特殊字符时，应用发生崩溃。" \
+  -f labels="bug,high-priority" -f assignee_ids[]=$USER_ID
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py create_issue "igroup/ishop" "登录页面输入特殊字符时崩溃" \
+  --desc "## 问题描述\n当用户在登录页面输入特殊字符时崩溃" \
+  --labels "bug,high-priority" --assignee_id $USER_ID
+
+# curl 方式（兜底）
 TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq '.id')
-
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
-  -d '{"title": "登录页面输入特殊字符时崩溃", "description": "## 问题描述\n当用户在登录页面输入特殊字符时，应用发生崩溃。\n\n## 复现步骤\n1. 打开登录页面\n2. 在用户名输入框输入特殊字符\n3. 点击登录按钮\n4. 应用崩溃\n\n## 预期行为\n应正确处理特殊字符，给出友好的错误提示。", "labels": "bug,high-priority", "assignee_ids": ['$USER_ID']}' \
+  -d '{"title": "登录页面输入特殊字符时崩溃", "description": "## 问题描述\n当用户在登录页面输入特殊字符时，应用发生崩溃。", "labels": "bug,high-priority", "assignee_ids": ['$USER_ID']}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/issues"
 ```
 
 **步骤3：创建 Draft MR + 关联分支（自动执行）**
 
 ```bash
+# glab 方式（优先）
+glab api /projects/igroup%2Fishop/merge_requests --hostname git.graspishop.com -X POST \
+  -f source_branch="974-登录页面输入特殊字符时崩溃" -f target_branch="main" \
+  -f title='Draft: Resolve "登录页面输入特殊字符时崩溃"' \
+  -f description="🚧 修复中...
+
+Fixes #974" \
+  -f assignee_id=$USER_ID -f remove_source_branch=true
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py create_mr "igroup/ishop" "974-登录页面输入特殊字符时崩溃" \
+  'Draft: Resolve "登录页面输入特殊字符时崩溃"' \
+  --desc "🚧 修复中...\n\nFixes #974" --assignee_id $USER_ID
+
+# curl 方式（兜底）
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
-  -d '{"source_branch": "974-登录页面输入特殊字符时崩溃", "target_branch": "main", "title": "Draft: Resolve \"登录页面输入特殊字符时崩溃\"", "description": "登录页面在输入特殊字符时发生崩溃。\n\n🚧 修复中...\n\nFixes #974", "assignee_id": '$USER_ID', "remove_source_branch": true}' \
+  -d '{"source_branch": "974-登录页面输入特殊字符时崩溃", "target_branch": "main", "title": "Draft: Resolve \"登录页面输入特殊字符时崩溃\"", "description": "🚧 修复中...\n\nFixes #974", "assignee_id": '$USER_ID', "remove_source_branch": true}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests"
 ```
 
@@ -294,16 +370,20 @@ curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 ### Agent 执行流程（自动执行）
 
 ```bash
+# === glab 方式（优先） ===
+glab api "/projects/igroup%2Fishop/issues?assignee_username=$USERNAME&state=opened" --hostname git.graspishop.com
+glab api "/projects/igroup%2Fishop/merge_requests?author_username=$USERNAME&state=opened" --hostname git.graspishop.com
+glab api "/projects/igroup%2Fishop/merge_requests?reviewer_username=$USERNAME&state=opened" --hostname git.graspishop.com
+
+# === Python 脚本方式 ===
+python3 scripts/gitlab_api.py list_issues "igroup/ishop" --assignee $USERNAME --state opened
+python3 scripts/gitlab_api.py list_mrs "igroup/ishop" --author $USERNAME --state opened
+
+# === curl 方式（兜底） ===
 TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 USERNAME=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq -r '.username')
-
-# 查询指派给我的 Issues
 curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/issues?assignee_username=$USERNAME&state=opened"
-
-# 查询我创建的 MR
 curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests?author_username=$USERNAME&state=opened"
-
-# 查询待我审核的 MR
 curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests?reviewer_username=$USERNAME&state=opened"
 ```
 
@@ -343,11 +423,23 @@ curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/i
 ```
 
 ```bash
+# glab 方式（优先）
+glab api /projects/igroup%2Fishop/issues --hostname git.graspishop.com -X POST \
+  -f title="优化商品列表的加载性能" \
+  -f description="## 当前问题
+商品列表在数据量大时加载缓慢" \
+  -f labels="improvement,performance" -f assignee_ids[]=$USER_ID
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py create_issue "igroup/ishop" "优化商品列表的加载性能" \
+  --desc "## 当前问题\n商品列表在数据量大时加载缓慢" \
+  --labels "improvement,performance" --assignee_id $USER_ID
+
+# curl 方式（兜底）
 TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq '.id')
-
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
-  -d '{"title": "优化商品列表的加载性能", "description": "## 当前问题\n商品列表在数据量大时加载缓慢，影响用户体验。\n\n## 优化建议\n- 实现分页加载\n- 添加列表懒加载\n- 优化数据查询\n\n## 验收标准\n- [ ] 列表加载时间 < 1秒\n- [ ] 内存占用优化 50%\n- [ ] 滚动流畅度提升", "labels": "improvement,performance", "assignee_ids": ['$USER_ID']}' \
+  -d '{"title": "优化商品列表的加载性能", "description": "## 当前问题\n商品列表在数据量大时加载缓慢", "labels": "improvement,performance", "assignee_ids": ['$USER_ID']}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/issues"
 ```
 
@@ -366,12 +458,16 @@ curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 **步骤1：查看 MR 详情（自动执行）**
 
 ```bash
+# glab 方式（优先）
+glab api /projects/igroup%2Fishop/merge_requests/48 --hostname git.graspishop.com
+glab api /projects/igroup%2Fishop/merge_requests/48/changes --hostname git.graspishop.com
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py list_mrs "igroup/ishop" --iid 48
+
+# curl 方式（兜底）
 TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
-
-# 查看 MR 详情
 curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48"
-
-# 查看 MR 变更
 curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48/changes"
 ```
 
@@ -379,9 +475,14 @@ curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/i
 
 **情况A：通过审核**
 ```bash
+# glab 方式
+glab api /projects/igroup%2Fishop/merge_requests/48/approve --hostname git.graspishop.com -X POST
+glab api /projects/igroup%2Fishop/merge_requests/48/notes --hostname git.graspishop.com -X POST \
+  -f body="LGTM! 代码质量良好，测试覆盖充分。"
+
+# curl 方式
 curl -s -X POST -H "Private-Token: $TOKEN" \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48/approve"
-
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
   -d '{"body": "LGTM! 代码质量良好，测试覆盖充分。"}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48/notes"
@@ -389,6 +490,13 @@ curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 
 **情况B：请求修改**
 ```bash
+# glab 方式
+glab api /projects/igroup%2Fishop/merge_requests/48/notes --hostname git.graspishop.com -X POST \
+  -f body="请处理以下问题：
+1. 缺少单元测试
+2. 命名不够清晰"
+
+# curl 方式
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
   -d '{"body": "请处理以下问题：\n1. 缺少单元测试\n2. 命名不够清晰\n3. 注释建议统一使用英文"}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/48/notes"
@@ -407,12 +515,26 @@ curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 ### Agent 执行流程（合并为不可逆操作，需用户确认）
 
 ```bash
-TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
+# === 检查 MR 状态（自动执行） ===
+# glab 方式
+glab api /projects/igroup%2Fishop/merge_requests/45 --hostname git.graspishop.com
 
-# 检查 MR 状态（自动执行）
+# Python 脚本方式
+python3 scripts/gitlab_api.py list_mrs "igroup/ishop" --iid 45
+
+# curl 方式
+TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/45"
 
-# 执行合并（用户确认后执行）
+# === 执行合并（用户确认后执行，has_risk: true） ===
+# glab 方式
+glab api /projects/igroup%2Fishop/merge_requests/45/merge --hostname git.graspishop.com -X PUT \
+  -f should_remove_source_branch=true
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py merge_mr "igroup/ishop" 45
+
+# curl 方式
 curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
   -d '{"should_remove_source_branch": true}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests/45/merge"
@@ -475,11 +597,25 @@ git branch -a
 ### Agent 执行流程（自动执行）
 
 ```bash
+# glab 方式（优先）
+glab api /projects/igroup%2Fishop/merge_requests --hostname git.graspishop.com -X POST \
+  -f source_branch="126-商品搜索功能" -f target_branch="main" \
+  -f title="Draft: 商品搜索功能" \
+  -f description="🚧 WIP: 功能开发中
+
+Relates to #126" \
+  -f assignee_id=$USER_ID -f remove_source_branch=true
+
+# Python 脚本方式
+python3 scripts/gitlab_api.py create_mr "igroup/ishop" "126-商品搜索功能" \
+  "Draft: 商品搜索功能" \
+  --desc "🚧 WIP: 功能开发中\n\nRelates to #126" --assignee_id $USER_ID
+
+# curl 方式（兜底）
 TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq '.id')
-
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
-  -d '{"source_branch": "126-商品搜索功能", "target_branch": "main", "title": "Draft: 商品搜索功能", "description": "🚧 WIP: 功能开发中\n\n## 当前进度\n- [x] 搜索 UI\n- [ ] 搜索逻辑\n- [ ] 性能优化\n\nRelates to #126", "assignee_id": '$USER_ID', "remove_source_branch": true}' \
+  -d '{"source_branch": "126-商品搜索功能", "target_branch": "main", "title": "Draft: 商品搜索功能", "description": "🚧 WIP: 功能开发中\n\nRelates to #126", "assignee_id": '$USER_ID', "remove_source_branch": true}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests"
 ```
 
@@ -526,6 +662,14 @@ curl -s -X PUT -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 ### 认证失败
 
 ```bash
+# glab 认证失败
+$ glab auth status --hostname git.graspishop.com
+error: failed to authenticate
+
+# 解决：重新登录
+glab auth login --hostname git.graspishop.com --token glpat-xxxxxxxxxxxxxxxx
+
+# curl/Python 认证失败
 $ curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user"
 {"message":"401 Unauthorized"}
 
