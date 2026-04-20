@@ -142,7 +142,7 @@ curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 ```bash
 # 自动确定：目标分支 main，源分支 421-用户登录功能
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
-  -d '{"source_branch": "421-用户登录功能", "target_branch": "main", "title": "Draft: Resolve \"用户登录功能\"", "description": "## 变更概述\n🚧 开发中...\n\n## 关联 Issue\nCloses #421", "assignee_id": '$USER_ID'}' \
+  -d '{"source_branch": "421-用户登录功能", "target_branch": "main", "title": "Draft: Resolve \"用户登录功能\"", "description": "## 变更概述\n🚧 开发中...\n\n## 关联 Issue\nCloses #421", "assignee_id": '$USER_ID', "remove_source_branch": true}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests"
 ```
 
@@ -242,7 +242,7 @@ curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 
 ```bash
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
-  -d '{"source_branch": "974-登录特殊字符崩溃", "target_branch": "main", "title": "Draft: Resolve \"登录页面输入特殊字符时崩溃\"", "description": "## 问题\n登录页面在输入特殊字符时发生崩溃。\n\n🚧 修复中...\n\nFixes #974", "assignee_id": '$USER_ID'}' \
+  -d '{"source_branch": "974-登录页面输入特殊字符时崩溃", "target_branch": "main", "title": "Draft: Resolve \"登录页面输入特殊字符时崩溃\"", "description": "登录页面在输入特殊字符时发生崩溃。\n\n🚧 修复中...\n\nFixes #974", "assignee_id": '$USER_ID', "remove_source_branch": true}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests"
 ```
 
@@ -250,7 +250,7 @@ curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
 
 ```bash
 git fetch --all
-git checkout 974-登录特殊字符崩溃
+git checkout 974-登录页面输入特殊字符时崩溃
 
 # 修复 bug...
 ```
@@ -260,7 +260,7 @@ git checkout 974-登录特殊字符崩溃
 ```bash
 git add .
 git commit -m "添加输入验证防止特殊字符崩溃"
-git push origin 974-登录特殊字符崩溃
+git push origin 974-登录页面输入特殊字符时崩溃
 ```
 
 **步骤6：Draft 转正式状态（自动执行）**
@@ -479,7 +479,7 @@ TOKEN=$(git config --global gitlab.token || echo $GITLAB_TOKEN)
 USER_ID=$(curl -s -H "Private-Token: $TOKEN" "https://git.graspishop.com/api/v4/user" | jq '.id')
 
 curl -s -X POST -H "Private-Token: $TOKEN" -H "Content-Type: application/json" \
-  -d '{"source_branch": "126-商品搜索功能", "target_branch": "main", "title": "Draft: 商品搜索功能", "description": "🚧 WIP: 功能开发中\n\n## 当前进度\n- [x] 搜索 UI\n- [ ] 搜索逻辑\n- [ ] 性能优化\n\nRelates to #126", "assignee_id": '$USER_ID'}' \
+  -d '{"source_branch": "126-商品搜索功能", "target_branch": "main", "title": "Draft: 商品搜索功能", "description": "🚧 WIP: 功能开发中\n\n## 当前进度\n- [x] 搜索 UI\n- [ ] 搜索逻辑\n- [ ] 性能优化\n\nRelates to #126", "assignee_id": '$USER_ID', "remove_source_branch": true}' \
   "https://git.graspishop.com/api/v4/projects/igroup%2Fishop/merge_requests"
 ```
 

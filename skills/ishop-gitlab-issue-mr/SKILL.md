@@ -284,8 +284,8 @@ curl -s -X POST -H "Private-Token: $TOKEN" \
 #### 步骤5：创建 Draft MR + 关联分支（自动执行）
 
 ```bash
-# 分支名格式：{issue-id}-{简短描述}
-SOURCE_BRANCH="<issue-id>-<简短描述>"
+# 分支名格式：{issue-id}-{Issue标题}（与 Issue 标题完全一致，不缩短）
+SOURCE_BRANCH="<issue-id>-<Issue标题>"
 
 # 创建 MR（自动创建分支）
 curl -s -X POST -H "Private-Token: $TOKEN" \
@@ -296,6 +296,7 @@ curl -s -X POST -H "Private-Token: $TOKEN" \
     "title": "Draft: Resolve \"<Issue名称>\"",
     "description": "## 变更概述\n🚧 开发中...\n\n## 关联 Issue\nCloses #<issue-id>",
     "assignee_ids": [<当前用户ID>],
+    "remove_source_branch": true,
     "draft": true
   }' \
   "https://git.graspishop.com/api/v4/projects/$PROJECT_PATH/merge_requests"
@@ -495,13 +496,15 @@ git checkout <branch-name>
 
 **分支命名规范：**
 
-格式：`{issue-id}-{简短描述}`（无类型前缀）
+格式：`{issue-id}-{Issue标题}`（与 Issue 标题完全一致，无类型前缀，不缩短）
 
 | 示例 |
 |------|
 | `421-iShop开单神器` |
 | `974-BUG修改` |
 | `9750-商品性质档案` |
+
+**⚠️ 分支名必须与 Issue 标题完全一致，禁止自行缩写或简化。**
 
 #### 通过 API 创建分支
 
@@ -553,18 +556,19 @@ curl -s -X DELETE -H "Private-Token: $TOKEN" \
 # 1. 先创建分支
 curl -s -X POST -H "Private-Token: $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"branch": "<issue-id>-<简短描述>", "ref": "main"}' \
+  -d '{"branch": "<issue-id>-<Issue标题>", "ref": "main"}' \
   "https://git.graspishop.com/api/v4/projects/$PROJECT_PATH/repository/branches"
 
 # 2. 创建 Draft MR 并关联 Issue
 curl -s -X POST -H "Private-Token: $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "source_branch": "<issue-id>-<简短描述>",
+    "source_branch": "<issue-id>-<Issue标题>",
     "target_branch": "main",
     "title": "Draft: Resolve \"<Issue名称>\"",
     "description": "## 变更概述\n🚧 开发中...\n\n## 关联 Issue\nCloses #<issue-id>",
     "assignee_ids": [<当前用户ID>],
+    "remove_source_branch": true,
     "draft": true
   }' \
   "https://git.graspishop.com/api/v4/projects/$PROJECT_PATH/merge_requests"
@@ -572,7 +576,8 @@ curl -s -X POST -H "Private-Token: $TOKEN" \
 
 **关键说明：**
 - `draft: true`：创建为 Draft 状态（开发中）
-- 分支名格式 `{issue-id}-{描述}`（无前缀）
+- `remove_source_branch: true`：合并后自动删除源分支
+- 分支名格式 `{issue-id}-{Issue标题}`（无前缀，不缩短）
 - 描述中使用 `Closes #<issue-id>` 自动关闭关联 Issue
 - `assignee_ids`：自动指派给当前登录用户
 
@@ -589,6 +594,7 @@ curl -s -X POST -H "Private-Token: $TOKEN" \
     "title": "<title>",
     "description": "<description>",
     "assignee_ids": [<user_id>],
+    "remove_source_branch": true,
     "labels": "feature,review",
     "draft": false
   }' \
@@ -780,7 +786,7 @@ curl -s -X POST -H "Private-Token: $TOKEN" \
 # ====== 步骤3：创建 Draft MR ======
 curl -s -X POST -H "Private-Token: $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"source_branch": "421-用户登录功能", "target_branch": "main", "title": "Draft: Resolve \"用户登录功能\"", "description": "## 变更概述\n🚧 开发中...\n\nCloses #421", "assignee_ids": [USER_ID], "draft": true}' \
+  -d '{"source_branch": "421-用户登录功能", "target_branch": "main", "title": "Draft: Resolve \"用户登录功能\"", "description": "## 变更概述\n🚧 开发中...\n\nCloses #421", "assignee_ids": [USER_ID], "remove_source_branch": true, "draft": true}' \
   "https://git.graspishop.com/api/v4/projects/$PROJECT_PATH/merge_requests"
 # 输出：MR !45 已创建
 
@@ -830,7 +836,7 @@ curl -s -X POST -H "Private-Token: $TOKEN" \
 
 curl -s -X POST -H "Private-Token: $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"source_branch": "974-BUG修改", "target_branch": "main", "title": "Draft: Resolve \"974BUG修改\"", "description": "## 问题\n[问题描述]\n\nFixes #974", "assignee_ids": [USER_ID], "draft": true}' \
+  -d '{"source_branch": "974-BUG修改", "target_branch": "main", "title": "Draft: Resolve \"974BUG修改\"", "description": "## 问题\n[问题描述]\n\nFixes #974", "assignee_ids": [USER_ID], "remove_source_branch": true, "draft": true}' \
   "https://git.graspishop.com/api/v4/projects/$PROJECT_PATH/merge_requests"
 
 # ====== 步骤3：本地拉取分支修复 ======
