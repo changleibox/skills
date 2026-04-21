@@ -1,6 +1,6 @@
 # 多Bug处理模式详细流程
 
-> 本文件是 ishop-yunxiao-bug-fix 技能的子文件（v2.2.0），包含步骤三B~三D的详细操作流程。
+> 本文件是 ishop-yunxiao-bug-fix 技能的子文件（v2.3.0），包含步骤三B~三D的详细操作流程。
 > 由主文件 SKILL.md 在多Bug处理场景中通过 read_file 引用。
 
 ### 步骤三B：批量操作模式
@@ -11,7 +11,9 @@
 ```
 已选中 N 个Bug进行批量处理：
 1. [BUG-XXX] 标题... | 优先级：高
+   🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/{identifier}
 2. [BUG-XXX] 标题... | 优先级：中
+   🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/{identifier}
 ...
 ```
 
@@ -87,6 +89,7 @@
    ━━━ 第 X/N 个 ━━━
    [BUG-XXX] 标题
    优先级：高 | 状态：待处理 | 创建人：张三
+   🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/{identifier}
    描述：（前200字）...
    ━━━━━━━━━━━━━━━
    ```
@@ -134,15 +137,21 @@
 
 第1组 - 开单相关（3个）：
   • [BUG-001] 销售开单页面选择客户时闪退
+    🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/BUG-001
   • [BUG-003] 开单时商品数量无法输入小数
+    🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/BUG-003
   • [BUG-007] 开单页面价格计算错误
+    🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/BUG-007
 
 第2组 - 库存相关（2个）：
   • [BUG-002] 库存盘点数量显示异常
+    🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/BUG-002
   • [BUG-005] 入库单审核后库存未更新
+    🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/BUG-005
 
 未分组（1个）：
   • [BUG-004] 系统设置页面打开缓慢
+    🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/BUG-004
 ```
 
 使用 `AskUserQuestion` 确认：

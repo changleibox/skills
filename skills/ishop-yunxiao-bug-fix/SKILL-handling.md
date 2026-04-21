@@ -1,6 +1,6 @@
 # Bug处理方式详细流程
 
-> 本文件是 ishop-yunxiao-bug-fix 技能的子文件（v2.2.0），包含步骤四A~四G的详细操作流程和评论模板。
+> 本文件是 ishop-yunxiao-bug-fix 技能的子文件（v2.3.0），包含步骤四A~四G的详细操作流程和评论模板。
 > 由主文件 SKILL.md 在用户选择处理方式后通过 read_file 引用。
 
 #### 步骤四A：执行修复

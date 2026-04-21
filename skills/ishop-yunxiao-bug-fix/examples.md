@@ -24,12 +24,15 @@ AI 响应：
 
 1. [BUG-001] 销售开单页面选择客户时闪退
    优先级：高 | 状态：待处理
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-001
 
 2. [BUG-002] 商品列表筛选条件不生效
    优先级：中 | 状态：待确认
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-002
 
 3. [BUG-003] 订单详情页面金额显示错误
    优先级：低 | 状态：处理中
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-003
 
 请问要处理哪个Bug？（支持多选，可同时选择多个Bug）
 [BUG-001] 销售开单页面选择客户时闪退
@@ -304,8 +307,11 @@ AI 响应：
 找到 5 个已修复的Bug：
 
 1. [BUG-004] 登录页面验证码不显示 - 已修复
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-004
 2. [BUG-005] 商品详情图片加载失败 - 已修复
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-005
 3. [BUG-006] 购物车数量计算错误 - 已修复
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-006
 ...
 ```
 
@@ -366,9 +372,11 @@ AI 响应：
 
 1. [BUG-001] 销售开单页面选择客户时闪退
    优先级：高 | 状态：待处理
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-001
 
 2. [BUG-008] 商品详情页快速切换时闪退
    优先级：高 | 状态：处理中
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-008
 
 请问要处理哪个Bug？
 ```
@@ -435,18 +443,23 @@ AI 响应：
 
 1. [BUG-010] 入库单审核后库存未更新
    优先级：高 | 状态：待处理
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-010
 
 2. [BUG-011] 采购单价格计算不包含税率
    优先级：高 | 状态：待处理
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-011
 
 3. [BUG-012] 供应商列表分页失效
    优先级：中 | 状态：待确认
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-012
 
 4. [BUG-013] 销售报表导出时间段错乱
    优先级：中 | 状态：处理中
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-013
 
 5. [BUG-014] 开单页面备注字数超限无提示
    优先级：低 | 状态：待处理
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-014
 
 请问要处理哪个Bug？（支持多选，可同时选择多个Bug）
 [BUG-010] 入库单审核后库存未更新
@@ -539,9 +552,11 @@ AI 生成转交评论：
 
 1. [BUG-013] 销售报表导出时间段错乱
    优先级：中 | 状态：处理中
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-013
 
 2. [BUG-014] 开单页面备注字数超限无提示
    优先级：低 | 状态：待处理
+   🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-014
 
 请问要处理哪个Bug？（支持多选，可同时选择多个Bug）
 [BUG-013] 销售报表导出时间段错乱
@@ -567,7 +582,8 @@ AI 生成转交评论：
 ━━━ 第 1/2 个 ━━━
 [BUG-013] 销售报表导出时间段错乱
 优先级：中 | 状态：处理中 | 创建人：王五
-描述：导出销售报表时，选择“本月”时间段导出的数据实际为上月数据，时间范围偏移了一个月...
+🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-013
+描述：导出销售报表时，选择"本月"时间段导出的数据实际为上月数据，时间范围偏移了一个月...
 ━━━━━━━━━━━━━━━
 
 请选择处理方式：
@@ -632,6 +648,7 @@ lib/src/utils/report_date_helper.dart: 将DateTime.now()替换为DateTime.now().
 ━━━ 第 2/2 个 ━━━
 [BUG-014] 开单页面备注字数超限无提示
 优先级：低 | 状态：待处理 | 创建人：赵六
+🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-014
 描述：销售开单页面备注输入超过200字后无任何提示，提交后备注被截断...
 ━━━━━━━━━━━━━━━
 
@@ -715,12 +732,17 @@ Android 14 (Pixel 7), 应用版本 3.2.1, 测试账号 test_user_01
 
 第1组 - 开单相关（3个）：
   • [BUG-020] 销售开单页面商品搜索无结果
+    🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-020
   • [BUG-021] 开单时修改数量后小计未重算
+    🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-021
   • [BUG-024] 开单页面选择仓库后商品未刷新
+    🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-024
 
 第2组 - 库存相关（2个）：
   • [BUG-022] 库存盘点单审核后数量未同步
+    🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-022
   • [BUG-023] 库存预警阈值设置不生效
+    🔗 https://devops.aliyun.com/projex/project/abc123/bug/BUG-023
 
 是否确认分组？
 [确认分组，开始处理] [调整分组]

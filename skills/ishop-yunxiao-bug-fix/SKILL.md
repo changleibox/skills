@@ -1,6 +1,6 @@
 ---
 name: ishop-yunxiao-bug-fix
-version: 2.2.0
+version: 2.3.0
 description: 云效（阿里云DevOps平台）Bug工作项全生命周期管理技能，涵盖工作项查询、详情获取、评论提交、状态流转等操作流程。当用户询问“我有bug吗”、“有没有bug”、“查看bug”、“看看bug”、“bug列表”等与查看/处理Bug相关的问题时，自动触发此技能。
 trigger:
   - 我有bug吗
@@ -56,6 +56,12 @@ mcp_RAM_search_workitems 参数说明：
   - assignedTo: "self" 或具体用户ID（指定负责人）
   - status: 状态ID列表，多个用逗号分隔（可选）
 ```
+
+**云效链接构造规则**：
+查询到Bug列表后，为每个Bug生成云效平台的直达链接，方便用户在浏览器中查看完整详情：
+- 链接格式：`https://devops.aliyun.com/projex/project/{spaceId}/bug/{workItemIdentifier}`
+- 其中 `spaceId` 为步骤一获取的项目空间ID，`workItemIdentifier` 为工作项的 `identifier` 字段值
+- 链接在Bug列表展示时附加在每条Bug信息末尾
 
 **默认状态过滤规则**：
 - 默认只查询**需要处理的Bug**，即状态为：待确认(28)、待处理(100005)、重新打开(30)、处理中(100010)
@@ -137,7 +143,12 @@ mcp_RAM_search_workitems 参数说明：
      注意：如果没有处理任何Bug（用户在第一轮就选择"暂不处理"），则仅告知"没有处理任何Bug"，不生成报告。
    - 列表不为空 → 继续下方流程
 
-2. **展示剩余Bug**：以简洁列表形式展示所有待处理Bug，每条包含：编号、标题、优先级、当前状态。如果是循环回来的（非首次），额外提示"已完成 N 个，剩余 M 个"
+2. **展示剩余Bug**：以简洁列表形式展示所有待处理Bug，每条包含：编号、标题、优先级、当前状态、云效链接。如果是循环回来的（非首次），额外提示"已完成 N 个，剩余 M 个"。展示格式：
+   ```
+   N. [BUG-XXX] 标题
+      优先级：高 | 状态：待处理
+      🔗 https://devops.aliyun.com/projex/project/{spaceId}/bug/{identifier}
+   ```
 
 3. **询问用户选择**：使用 `AskUserQuestion`（multiSelect: true）工具，选项包括：
    - 各个Bug的标题作为选项（支持选择一个或多个Bug）
